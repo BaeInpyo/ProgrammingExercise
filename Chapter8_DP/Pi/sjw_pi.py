@@ -2,48 +2,55 @@ import sys
 
 
 '''
-- 어떻게 재귀적으로 DP를 구현할 것인지?
+- level을 구하기 위해 list slicing을 매번 하는 것 보다 직접 숫자 3,4,5개를 인자로 넘기는 것이 더 빠름
 '''
 
 
-def level(arr):
-    '''
-
-    :param arr: list of integer whose length is in [3, 5], e.g. inclusive in both side
-    :return: correspnding level
-
-    level1: every integer in arr is same
-    level2: monotonically increasing or decreasing by 1
-    level3: 2 integers appears alternatively
-    level4: integers compose sequence with same difference, e.g. arithmetic sequence
-    level5: others
-    '''
-
-    # level1: all elements are same
-    if len(set(arr)) == 1:
+def score_3(a, b, c):
+    if a == b == c:
         return 1
 
-    # level2: monotonically increase or decrease
-    a1 = arr[:-1]   # (a^1, ... a^(n-1))
-    a2 = arr[1:]    # (a^2, ... a^n)
-    diff = [x-y for (x, y) in zip(a1, a2)]
-    if len(set(diff)) == 1 and (diff[0] == 1 or diff[0] == -1):
+    if a-b == b-c == 1 or a-b == b-c == -1:
         return 2
 
-    # level3: 2 integers appears alternatively
-    a1 = [x[1] for x in enumerate(arr) if x[0] % 2 == 0]
-    a2 = [x[1] for x in enumerate(arr) if x[0] % 2 != 0]
-    if a1[0] != a2[0] and len(set(a1)) == len(set(a2)) == 1:
+    if a == c != b:
         return 4
 
-    # level4: arithmetic sequence
-    a1 = arr[:-1]  # (a^1, ... a^(n-1))
-    a2 = arr[1:]  # (a^2, ... a^n)
-    diff = [x - y for (x, y) in zip(a1, a2)]
-    if len(set(diff)) == 1:
+    if a-b == b-c:
         return 5
 
-    # level5: other cases
+    return 10
+
+
+def score_4(a, b, c, d):
+    if a == b == c == d:
+        return 1
+
+    if a-b == b-c == c-d == 1 or a-b == b-c == c-d == -1:
+        return 2
+
+    if a == c and b == d and a != b:
+        return 4
+
+    if a-b == b-c == c-d:
+        return 5
+
+    return 10
+
+
+def score_5(a, b, c, d, e):
+    if a == b == c == d == e:
+        return 1
+
+    if a-b == b-c == c-d == d-e == 1 or a-b == b-c == c-d == d-e == -1:
+        return 2
+
+    if a == c == e and b == d and a != b:
+        return 4
+
+    if a-b == b-c == c-d == d-e:
+        return 5
+
     return 10
 
 
@@ -55,8 +62,9 @@ def pi(arr):
 
     # we cannot calculate level of array with length < 3
     # initialize when length is in [3,5]
-    for i in [3, 4, 5]:
-        cache[i] = level(arr[:i])
+    cache[3] = score_3(arr[0], arr[1], arr[2])
+    cache[4] = score_4(arr[0], arr[1], arr[2], arr[3])
+    cache[5] = score_5(arr[0], arr[1], arr[2], arr[3], arr[4])
 
     # fill cache
     for i in range(6, N+1):
@@ -64,15 +72,15 @@ def pi(arr):
 
         # case1: sub-array with length 3
         if cache[i-3] is not None:
-            cand.append(cache[i-3] + level(arr[i-3:]))
+            cand.append(cache[i-3] + score_3(arr[i-3], arr[i-2], arr[i-1]))
 
         # case2: sub-array with length 4
         if cache[i-4] is not None:
-            cand.append(cache[i-4] + level(arr[i-4:]))
+            cand.append(cache[i-4] + score_4(arr[i-4], arr[i-3], arr[i-2], arr[i-1]))
 
         # case1: sub-array with length 5
         if cache[i-5] is not None:
-            cand.append(cache[i-5] + level(arr[i-5:]))
+            cand.append(cache[i-5] + score_5(arr[i-5], arr[i-4], arr[i-3], arr[i-2], arr[i-1]))
 
         cache[i] = min(cand)
 
@@ -80,6 +88,7 @@ def pi(arr):
 
 
 if __name__ == '__main__':
+
     # freopen equivalent
     # sys.stdin = open('input.txt', 'r')
 
@@ -88,10 +97,8 @@ if __name__ == '__main__':
 
     for _ in range(C):
         line = sys.stdin.readline().strip()
-        numbers = [int(x) for x in line]
+        numbers = list(map(int, line))
         answers.append(pi(numbers))
 
     for a in answers:
         sys.stdout.write('{}\n'.format(a))
-
-
