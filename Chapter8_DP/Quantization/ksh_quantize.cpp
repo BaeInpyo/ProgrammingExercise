@@ -19,13 +19,15 @@ int square[MAX_N+1];
 int dp[MAX_N+1][MAX_S+1];
 int valid_dp[MAX_N+1][MAX_S+1];
 int valid;
+
 int calcError(int start, int end){
 	// start에서 end까지의 error
 	// (start-m)^2 + ....... + (end-m)^2
 	// (start^2 + .... + end ^2) -2*m*(start+...+end) + (end-start+1) * m^2
-	int block_square = square[end]-square[start-1];
+	int n = end-start+1;
+    int block_square = square[end]-square[start-1];
 	int block_sum = sum[end]-sum[start-1];
-	int midium = (block_sum%2) == 0 ? block_sum/2 : block_sum/2+1;
+    int midium = (int)( ((double)block_sum / n)+0.5);
 	int error = block_square - 2* midium * block_sum + (end-start+1)*midium*midium;
 	return error;
 }	
@@ -57,7 +59,7 @@ int getMinError(int idx, int s){
 
 int insertionSort(){
     int temp;
-    for(int pivot=2; pivot<N; pivot++){
+    for(int pivot=2; pivot<=N; pivot++){
         for(int i=pivot-1; i>=1; i--){
             if (arr[i] <= arr[i+1]){
                 continue;
@@ -81,7 +83,7 @@ void makeSums(){
 }
 
 int main(){
-    freopen("input.txt","r",stdin);
+    //freopen("input.txt","r",stdin);
     int testcase;
     scanf("%d", &testcase);
     for(int tc=1; tc<=testcase; tc++){
@@ -94,21 +96,6 @@ int main(){
         insertionSort();
         makeSums();
         int result = getMinError(1, S);
-        printf("%d\n", result);
-		/*
-        for(int i=0; i<=N; i++){
-            printf("%d ", arr[i]);
-        }
-        printf("\n");
-        for(int i=0; i<=N; i++){
-            printf("%d ", sum[i]);
-        }
-        printf("\n");
-        for(int i=0; i<=N; i++){
-            printf("%d ", square[i]);
-        }
-        printf("\n");
-        */        
-               
+        printf("%d\n", result);        
     }
 }
