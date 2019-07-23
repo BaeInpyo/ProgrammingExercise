@@ -65,8 +65,14 @@ int quantize(int start, int parts) {
     return res;
 }
 
+void init_numbers() {
+    for (int i=0; i<100; i++) {
+        numbers[i] = 1001;
+    }
+}
+
 void insert(int nth, int number) {
-    int loc = 0;
+    int loc = nth;
     for (int i=0; i<nth; i++) {
         if (numbers[i] >= number) {
             loc = i;
@@ -84,12 +90,12 @@ int main() {
     cin >> num_tests;
     for (int i=0; i<num_tests; i++) {
         cin >> n; cin >> s;
+        init_numbers();
+        // 1. Get input sorted
         for (int j=0; j<n; j++) {
             int number; cin >> number;
             insert(j, number);
         }
-        // 1. Sorting
-        //sort(begin(numbers), end(numbers));
         // 2. Calculate SUM(X) and SUM(X^2)
         calculate();
         // 3. Quantize
