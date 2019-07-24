@@ -36,8 +36,12 @@ void calculate() {
  * between start and end (start <= X <= end)
  */
 int calculate_error(int start, int end) {
-    double len = end - start + 1;
-    return square_sum[start][end] - round(sum[start][end] * sum[start][end] / len);
+    int len = end - start + 1;
+    int avg = round(sum[start][end]/(double)len);
+    //int error = square_sum[start][end] - avg * sum[start][end];     /* WRONG ANSWER */
+    int error = square_sum[start][end] - 2 * avg * sum[start][end] + avg * avg * len;
+
+    return error;
 }
 
 int cache[100][11];
@@ -49,7 +53,13 @@ void init_cache() {
     } 
 }
 
+/*
+ * start: 0, ..., n-1, n (end)
+ * parts: s, ..., 0 (end)
+ */
 int quantize(int start, int parts) {
+    if (start == n) return 0; 
+
     int &res = cache[start][parts];
     if (res != -1) return res;
 
@@ -58,8 +68,10 @@ int quantize(int start, int parts) {
         return res;
     }
 
-    res = 2147483646;
-    for (int end=start; end<n-parts+1; end++) {
+    //res = 2147483646;  /* WRONG ANSWER */
+    res = 999999999;
+    // QUESTION!!! 
+    for (int end=start; end<n; end++) {
         res = min(res, calculate_error(start,end) + quantize(end+1, parts-1));
     }
     return res;
