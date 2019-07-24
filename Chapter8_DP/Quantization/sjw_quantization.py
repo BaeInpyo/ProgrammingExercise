@@ -1,72 +1,72 @@
 import sys
 
 
-def min_square(numbers):
-    avg = round(sum(numbers) / len(numbers)) # 평균에서 가장 가까운 양수
-    result = sum(map(lambda x: pow(x-avg, 2), numbers))
-    # print('numbers, avg, result:', numbers, avg, result)
-    return result
+def solution(arr, N, S):
+    """
+    After check example inputs, you can think that we can get answer by
+    - sort original array ascending order
+    - then split array into S chunks that can minimize squared error
 
+    Let's consider cache[i][j] is 'minimum sum of squared error of j chunks of ARR[i:]'.
+    Then cache[i][j] = min of (min_square(ARR[i:k]) + cache[k][j-1]) for k in range [i+1, N-j]
+    Our target is, therefore, cache[0][S]
 
-def permutation(sections, sum_square, N, S, dic):
-    '''
+    Since we cannot memorize array itself as index of cache, we use start position of array, 'i', as index.
 
-    :param sections: 지금까지 고른 section의 조합
-    :param sum_square: 지금까지 고른 section에 대한 각 영역의 제곱합
-    :return: (최소제곱조합 section, 최소 제곱합)
-    '''
+    Additionally I define 3 more caches, 'sum_arr' and 'sum_square_arr', 'min_square' to calculate min_square quickly.
+    'sum_arr' is array of length N and 'sum_arr[i]' is sum of sorted array [a0, a1, ... ai].
+    'sum_square_arr' is also array of length N and 'sum_square_arr[i]' is squared sum of sorted [a0^2, a1^2, ... ai^2].
+    For example, if arr = [1, 2, 3], then sum_square_arr = [1, (1+2), (1+2+3)] and sum_square_arr = [1, (1+4), (1+4+9)].
 
-    remain_s = S - len(sections)
-    remain_n = N - sum(sections)
+    min_square[i][j] = minimum squared error of [ai, ... aj] where 0 <= i < N and i <= j < N
 
-    assert remain_s >= 0, 'remain_s'
-    assert remain_n >= 0, 'remain_n'
+    :param N:   length of integer array
+    :param S:   maximum number of chunck
+    :return:    minimum sum of splited chunk
+    """
+    if S >= N:
+        return 0
 
-    if remain_s == 0 and remain_n == 0:
-        return sections[:], sum_square
+    arr.sort()  # sort original array ascending order
 
-    if remain_s == 1:
-        # print('sections:', sections, sum(sections)+1, N)
-        return permutation(sections[:] + [remain_n], sum_square + dic[(sum(sections)+1, N)],
-                           N, S, dic)
+    cache = [[None for _ in range(S+1)] for _ in range(N)]
+    sum_arr, sum_square_arr, min_square =[0] * N, [0] * N, [[None] * (N) for _ in range(N)]
 
-    cand = []
-    # 최대 (remain_n - remain_s + 1)까지 가능
-    for i in range(1, remain_n-remain_s+2):
-        # print('curr:', sections, sum(sections)+1, sum(sections)+i+1)
-        curr = permutation(sections[:] + [i], sum_square + dic[(sum(sections)+1, sum(sections)+i)],
-                           N, S, dic)
-        cand.append(curr)
+    # initialize sum_arr, sum_square_arr
+    accumulated, accumulated_sq = 0, 0
+    for i in range(N):
+        accumulated += arr[i]
+        accumulated_sq += (arr[i] * arr[i])
+        sum_arr[i] = accumulated
+        sum_square_arr[i] = accumulated_sq
 
-    cand.sort(key=lambda x: x[1])
-    print('cand:', cand)
-
-    return cand[0]
-
-
-def quantization(arr, S):
-    N = len(arr)
-    arr.sort()
-
-    # dic[(i, j)] : [i, j] i번째 숫자와 j번째 숫자까지의 영역에서의 최소제곱합
-    # i와 j는 list index가 아님에 주의
-    # j도 포함하는 범위임에 주의
-    dic = {}
-
+    # initialize min_square
     for i in range(N):
         for j in range(i, N):
-            dic[(i+1, j+1)] = min_square(arr[i:j+1])
+            if i == 0:
+                avg = int((sum_arr[j] / (j+1)) + 0.5)
+                min_square[i][j] = sum_square_arr[j] - 2 * avg * (sum_arr[j]) + (j+1) * avg * avg
+            else:
+                avg = int(((sum_arr[j] - sum_arr[i-1]) / (j-i+1)) + 0.5)
+                min_square[i][j] = sum_square_arr[j] - sum_square_arr[i-1] - 2 * avg * (sum_arr[j] - sum_arr[i-1]) \
+                + (j-i+1) * avg * avg
 
-    print('arr:', arr)
-    # print('dic')
-    # keys = sorted(dic.keys())
-    # for k in keys:
-    #     print('k, v:', k, dic[k])
+    # initialize cache
+    # case: S=1
+    for i in range(N):
+        cache[i][1] = min_square[i][N-1]
 
-    sections, sum_square = permutation([], 0, N, S, dic)
-    print('sections:', sections)
-    print('sum_square:', sum_square)
-    return sum_square
+    # initialize cache
+    # case: if N=S, cache[n][s] = 0
+    for i in range(1, S+1):
+        cache[N-i][i] = 0
+
+    for j in range(2, S+1):
+        for i in range(N-j):
+            cand = [ min_square[i][k-1] + cache[k][j - 1] for k in range(i + 1, N - j + 2) ]
+            cache[i][j] = min(cand)
+
+    return cache[0][S]
 
 
 if __name__ == '__main__':
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     for _ in range(C):
         N, S = map(int, sys.stdin.readline().strip().split())
         arr = list(map(int, sys.stdin.readline().strip().split()))
-        answers.append(quantization(arr, S))
+        answers.append(solution(arr, N, S))
 
     for a in answers:
-        print('answer:', a)
+        sys.stdout.write('{}\n'.format(a))
