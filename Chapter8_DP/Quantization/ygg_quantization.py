@@ -32,7 +32,7 @@ def solution(start, s, numbers):
     minErr = math.inf
 
     # 캐싱된 환경이면 바로 리턴
-    if envDict.get((start, s), False):
+    if envDict.get((start, s), -1) != -1:
         return envDict[(start,s)]
 
     # 남은 숫자 수 보다 s가 같거나 크면 에러는 항상 0
