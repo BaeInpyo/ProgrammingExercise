@@ -27,9 +27,13 @@ def solution(n):
     for i in range(3, n+1):
         cache[i] = (cache[i-2] + cache[i-1]) % 1000000007
 
-    k = n // 2  # this cares both odd and even case of n
-    ans = (cache[n] - cache[k] - cache[k-1]) % 1000000007
-    return ans
+    k = n // 2
+    # if n is even number
+    if n % 2 == 0:
+        return (cache[n] - cache[k] - cache[k-1]) % 1000000007
+    # if n is odd number
+    else:
+        return (cache[n] - cache[k]) % 1000000007
 
 
 if __name__ == '__main__':
