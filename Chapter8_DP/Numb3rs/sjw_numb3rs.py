@@ -2,6 +2,14 @@ import sys
 
 
 def solution(n, d, p, A, Q):
+    """
+    :param n:   number of nodes
+    :param d:   how many days have passed
+    :param p:   prison node number
+    :param A:   adjacent matrix
+    :param Q:   target nodes
+    :return:    probability of each target noes
+    """
     probability = [0] * n
     probability[p] = 1
     degree = [sum(row) for row in A]
