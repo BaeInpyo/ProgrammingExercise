@@ -9,10 +9,45 @@ int weights[100];
 int priority[100];
 
 int result_priority_and_num[50][2];
-int result_set[50][100];
+bool result_set[50][100];
 
-void packing() {
+int cache[100][1000];
+void init_cache() {
+    for (int i = 0; i < 100; ++i) {
+        for (int j = 0; j < 1000; ++j) {
+            cache[i][j] = 0;
+        }
+    }
+}
+int packing(int start, int weight) {
+    if (start == n) return 0;
+    if (weight == 0) return 0;
 
+    int &res = cache[start][weight];
+    if (res != 0) return res;
+
+    int max_idx = 0;
+    for (int i = start; i < n; ++i) {
+        if (weights[i] <= weight) {
+            int partial_priority = priority[i] + packing(i+1, weight-weights[i]);
+            if (res < partial_priority) {
+                res = partial_priority;
+                max_idx = i;
+            }
+        }
+    }
+
+    if (res != 0) {
+        result_set[ith_test][max_idx] = true;
+        result_priority_and_num[ith_test][1] += 1;
+    }
+
+    return res;
+}
+
+void solution() {
+    init_cache();
+    result_priority_and_num[ith_test][0] = packing(0, w);
 }
 
 int main() {
@@ -27,7 +62,7 @@ int main() {
             cin >> priority[j];
         }
         
-        packing();
+        solution();
     }
 
     for (int i = 0; i < num_tests; ++i) {
@@ -35,8 +70,9 @@ int main() {
         int num_set = result_priority_and_num[i][1];
         cout << max_priority << " " << num_set << endl;
         for(int j = 0; j < num_set; ++j) {
-            int idx = result_set[i][j];
-            cout << items[idx] << endl;
+            if (result_set[i][j]) {
+                cout << items[j] << endl;
+            }
         }
     }
 
