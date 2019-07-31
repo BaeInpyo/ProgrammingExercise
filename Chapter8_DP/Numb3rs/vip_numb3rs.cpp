@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -13,9 +14,11 @@ void init_matrix() {
     for (int s = 1; s < 7; ++s) {
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
+                double sum = 0.0;
                 for (int k = 0; k < n; ++k) {
-                    prob[s][i][k] += prob[s-1][i][j] * prob[s-1][j][k];
+                    sum += prob[s-1][i][k] * prob[s-1][k][j];
                 }
+                prob[s][i][j] = sum;
             } 
         }
     }
@@ -84,6 +87,10 @@ int main() {
                     A[i][j] /= sum;
                     prob[0][i][j] = A[i][j];
                 }
+            } else {
+                for (int j = 0; j < n; ++j) {
+                    prob[0][i][j] = 0.0;
+                }
             }
         }
 
@@ -95,7 +102,7 @@ int main() {
         }
         
         for (int i = 0; i < t; ++i) {
-            cout << res[p][q[i]] << endl;
+            cout << setprecision(8) << res[p][q[i]] << endl;
         }
     }
 
