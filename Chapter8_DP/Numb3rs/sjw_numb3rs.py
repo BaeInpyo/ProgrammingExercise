@@ -19,11 +19,11 @@ def solution(n, d, p, A, Q):
             adj_nodes = adj_list[curr]
 
             for node in adj_nodes:
-                new_probability[node] += probability[curr] / degree[curr] # propagate probability
+                new_probability[node] += probability[curr] / degree[curr]   # propagate probability
 
         probability = new_probability
 
-    return [round(probability[x], 8) for x in Q]
+    return [probability[x] for x in Q]
 
 
 if __name__ == "__main__":
@@ -45,4 +45,4 @@ if __name__ == "__main__":
         answers.append(solution(n, d, p, A, Q))
 
     for a in answers:
-        print(a)
+        print(' '.join([ str(x) for x in a ]))
