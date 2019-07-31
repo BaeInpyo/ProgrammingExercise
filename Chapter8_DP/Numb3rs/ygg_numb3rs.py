@@ -24,6 +24,8 @@ def graphToProbMatrix(graph):
     return result
 
 """
+통과버전
+NxN 매트릭스의 파워계산이 아닌 NxN * Nx1 계산의 반복
 def solution(d, pVector, M):
     result = pVector
 
@@ -46,7 +48,8 @@ def getNPower(n, M):
         halfM = getNPower(int(n/2), M)
         return matrixMul(matrixMul(halfM, halfM), M)
 
-
+# 시간초과버전
+# NxN 매트릭스의 파워를 구한 후 결과를 계산
 def solution(d, pVector, M):
     MPowerD = getNPower(d, M)
     return matrixMul(MPowerD, pVector)
