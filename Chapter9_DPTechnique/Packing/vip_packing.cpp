@@ -2,23 +2,26 @@
 
 using namespace std;
 
-int ith_test;
 int n, w;
 string items[100];
 int weights[100];
 int priority[100];
 
-int result_priority_and_count[50][2];
-bool result_set[50][100];
+int result_priority;
+int result_count;
+bool result_set[100];
 
 int cache[100][1000][2];
 void init_cache() {
     for (int i = 0; i < 100; ++i) {
         for (int j = 0; j < 1000; ++j) {
-            cache[i][j][0] = 0;
-            cache[i][j][1] = 0;
+            cache[i][j][0] = -1;
+            cache[i][j][1] = -1;
         }
+        result_set[i] = false;
     }
+    result_priority = 0;
+    result_count = 0;
 }
 
 int packing(int start, int weight) {
@@ -27,8 +30,9 @@ int packing(int start, int weight) {
 
     int &res = cache[start][weight][0];
     int &max_idx = cache[start][weight][1];
-    if (res != 0) return res;
+    if (res != -1) return res;
 
+    res = 0;
     for (int i = start; i < n; ++i) {
         if (weights[i] <= weight) {
             int partial_priority = priority[i] + packing(i+1, weight-weights[i]);
@@ -47,20 +51,20 @@ void find_path() {
     int weight = w;
     int total_priority = 0;
     int count = 0;
-    while (total_priority != result_priority_and_count[ith_test][0]) {
+    while (total_priority != result_priority) {
         idx = cache[idx][weight][1];
-        result_set[ith_test][idx] = true;
+        result_set[idx] = true;
         count++;
         weight -= weights[idx];
         total_priority += priority[idx];
         idx += 1;
     }
-    result_priority_and_count[ith_test][1] = count;
+    result_count = count;
 }
 
 void solution() {
     init_cache();
-    result_priority_and_count[ith_test][0] = packing(0, w);
+    result_priority = packing(0, w);
     find_path();
 }
 
@@ -68,7 +72,7 @@ int main() {
     int num_tests;
     cin >> num_tests;
 
-    for (ith_test = 0; ith_test < num_tests; ++ith_test) {
+    for (int i = 0; i < num_tests; ++i) {
         cin >> n; cin >> w;
         for (int j = 0; j < n; ++j) {
             cin >> items[j];
@@ -77,14 +81,10 @@ int main() {
         }
         
         solution();
-    }
 
-    for (int i = 0; i < num_tests; ++i) {
-        int max_priority = result_priority_and_count[i][0];
-        int num_set = result_priority_and_count[i][1];
-        cout << max_priority << " " << num_set << endl;
+        cout << result_priority << " " << result_count << endl;
         for(int j = 0; j < n; ++j) {
-            if (result_set[i][j]) {
+            if (result_set[j]) {
                 cout << items[j] << endl;
             }
         }
