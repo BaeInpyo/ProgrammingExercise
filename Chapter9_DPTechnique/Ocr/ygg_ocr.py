@@ -26,7 +26,8 @@ def solution(sentence, prevWord, currIdx):
         else:
             currWordProb = JAfterIProb[prevWord][word]*recogIAsJProb[word][currIdxWord]
         
-        # 시간단축을 위해 현재 확률이 0이면 더 깊이 들어가지 않음
+        # ************ 시간단축을 위해 현재 확률이 0이면 더 깊이 들어가지 않음 ***********
+        # 내경우에 이부분을 추가하고 나서 시간초과가 
         if currWordProb == 0.0:
             continue
         totalProb = currWordProb * solution(sentence, word, currIdx+1)
