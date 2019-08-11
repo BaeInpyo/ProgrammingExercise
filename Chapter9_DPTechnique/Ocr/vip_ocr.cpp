@@ -1,4 +1,6 @@
 #include <iostream>
+#include <stdio.h>
+#include <sstream>
 
 #define M 500
 #define Q 20
@@ -23,8 +25,8 @@ int path_cache[N][M];
 void init_cache() {
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < M; ++j) {
-            prob_cache[i][j] = -1;
-            path_cache[i][j] = -1;
+            prob_cache[i][j] = 0;
+            path_cache[i][j] = 0;
         }
     }
 }
@@ -34,17 +36,16 @@ void init_cache() {
  *   0 <= i < M
  */
 double ocr(int n, int i) {
-    double &res_prob = prob_cache[n][i];
-    int &res_path = path_cache[n][i];
     if (n == 0) {
-        res_prob = probs_of_first_appear[i] * probs_of_decoding[str_idx[n]][i];
-        return res_prob;
+        return probs_of_first_appear[i] * probs_of_decoding[i][str_idx[n]];
     }
 
-    if (res_prob != -1) return res_prob;
+    double &res_prob = prob_cache[n][i];
+    int &res_path = path_cache[n][i];
+    if (res_prob != 0) return res_prob;
 
     for (int j = 0; j < num_words; ++j) {
-        double temp_prob = probs_of_next_appear[j][i] * probs_of_decoding[str_idx[n]][i] * ocr(n-1, j);
+        double temp_prob = probs_of_next_appear[j][i] * probs_of_decoding[i][str_idx[n]] * ocr(n-1, j);
         if (res_prob < temp_prob) {
             res_prob = temp_prob;
             res_path = j;
@@ -56,9 +57,9 @@ double ocr(int n, int i) {
 void print_answer(int path) {
     string result = words[path];
 
-    for (int i = num_words_in_str-1; i > 0; ++i) {
+    for (int i = num_words_in_str-1; i > 0; --i) {
         path = path_cache[i][path];
-        result = path + " " + result;
+        result = words[path] + " " + result;
     }
 
     cout << result << endl;
@@ -67,7 +68,7 @@ void print_answer(int path) {
 }
 
 void solution() {
-    double res_prob = -1;
+    double res_prob = 0;
     int res_path;
     init_cache();
     for (int i = 0; i < num_words; ++i) {
@@ -82,6 +83,7 @@ void solution() {
 }
 
 int main () {
+    cin.sync_with_stdio(false);
     cin >> num_words; cin >> num_str;
 
     for (int i = 0; i < num_words; ++i) {
@@ -109,7 +111,7 @@ int main () {
         for (int i = 0; i < num_words_in_str; ++i) {
             cin >> test_str[i];
             for (int j = 0; j < num_words; ++j) {
-                if (test_str[i].compare(words[j])) {
+                if (!test_str[i].compare(words[j])) {
                     str_idx[i] = j; break;
                 }
             }
