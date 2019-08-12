@@ -26,13 +26,35 @@ def solution(sentence, word_to_idx, idx_to_word, B, T, M, m, n):
     cache_recon = [[0] * m for _ in range(n+1)]
 
     # initialize cache
-    first_word_index = vocab[sentence[0]]
+    first_word_index = word_to_idx[sentence[0]]
     for j in range(m):
         cache_val[1][j] = B[j] * M[first_word_index][j]
         cache_recon[1][j] = j
 
+    # fill table
     for i in range(2, n+1):
         for j in range(m):
+            cand = []
+            curr_word_index = word_to_idx[sentence[i-1]]
+            for k in range(m):
+                cand.append(cache_val[i-1][k] * T[k][j] * M[j][curr_word_index])
+
+            max_value = max(cand)
+            max_index = cand.index(max_value)
+            cache_val[i][j] = max_value
+            cache_recon[i][j] = max_index
+
+    # make sentence
+    max_value = max(cache_val[n])
+    index = cache_val[n].index(max_value)
+    result = [idx_to_word[index]]
+    i = n
+    while i > 1:
+        index = cache_recon[i][index]
+        result.insert(0, idx_to_word[index])
+        i -= 1
+
+    return ' '.join(result)
 
 
 
@@ -44,7 +66,7 @@ if __name__ == "__main__":
 
     m, q = [int(x) for x in sys.stdin.readline().strip().split()]
     idx_to_word = sys.stdin.readline().strip().split()
-    word_to_idx = { x[1]: x[0] for x in idx_to_word }
+    word_to_idx = { x[1]: x[0] for x in enumerate(idx_to_word) }
     B = [float(x) for x in sys.stdin.readline().strip().split()]
 
     T = [0] * m
@@ -60,7 +82,8 @@ if __name__ == "__main__":
         n, sentence = int(line[0]), line[1:]
         answers.append(solution(sentence, word_to_idx, idx_to_word, B, T, M, m, n))
 
-
+    for a in answers:
+        print(a)
 
 
 
