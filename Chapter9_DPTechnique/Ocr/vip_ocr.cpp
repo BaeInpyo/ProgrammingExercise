@@ -45,7 +45,11 @@ double ocr(int n, int i) {
     if (res_prob != 0) return res_prob;
 
     for (int j = 0; j < num_words; ++j) {
-        double temp_prob = probs_of_next_appear[j][i] * probs_of_decoding[i][str_idx[n]] * ocr(n-1, j);
+        double prob_of_next_appear = probs_of_next_appear[j][i];
+        double prob_of_decoding = probs_of_decoding[i][str_idx[n]];
+        if (prob_of_next_appear == 0) continue;
+        if (prob_of_decoding == 0) continue;
+        double temp_prob = prob_of_next_appear * prob_of_decoding * ocr(n-1, j);
         if (res_prob < temp_prob) {
             res_prob = temp_prob;
             res_path = j;
