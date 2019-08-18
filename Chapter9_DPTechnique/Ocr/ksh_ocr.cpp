@@ -76,20 +76,33 @@ float probability(int pos, int curr_idx){
         memo_valid[0][curr_idx]=valid;
         return memo[0][curr_idx];
     }
-
+    int recog_idx = sentence[pos];
+    if(p_recog[curr_idx][recog_idx]==0){
+        memo[pos][curr_idx] = 0;
+        prev_word[pos][curr_idx] = -1;
+        memo_valid[pos][curr_idx]=valid;
+        return 0;
+    }
     // body
     float max = 0;
+    int max_prev_idx = 0;
     for(int prev_idx=0; prev_idx<n_word; prev_idx++){
-        int recog_idx = sentence[pos];
+        if(p_next[prev_idx][curr_idx]==0){
+            continue;
+        }
+
         float p_prev = probability(pos-1, prev_idx);
         float p_curr = p_prev * p_recog[curr_idx][recog_idx] * p_next[prev_idx][curr_idx];
+            
         if (p_curr > max){
             max = p_curr;
-            memo[pos][curr_idx]=p_curr;
-            prev_word[pos][curr_idx] = prev_idx;
-            memo_valid[pos][curr_idx] = valid;
+            max_prev_idx = prev_idx;
         }
     }
+
+    memo[pos][curr_idx]= max;
+    prev_word[pos][curr_idx] = max_prev_idx;
+    memo_valid[pos][curr_idx] = valid;
     return max;
 }
 /////////////////////////   solution   //////////////////////////////
@@ -117,7 +130,7 @@ void solution(){
 
 //////////////////////////   main    ////////////////////////////////
 int main(){
-    //freopen("input.txt","r",stdin);
+    freopen("input.txt","r",stdin);
     int testcase;
     scanf(" %d %d ", &n_word, &testcase);
     for(int i=0; i<n_word; i++){
@@ -161,33 +174,3 @@ int main(){
 }
 
 
-
-/* 인풋 확인용 */
-/*
-    printf("first probability\n");
-    for( int i=0; i<n_word; i++){
-        printf("%1.1f ", p_first[i]);    
-    }
-    printf("\n");
-    printf("next probability\n");
-    for( int y=0; y<n_word; y++){
-        for(int x=0; x<n_word; x++){
-            printf("%1.1f ", p_next[y][x]);
-        }
-        printf("\n");    
-    }
-    printf("\n");
-    printf("recog probability\n");
-    for( int y=0; y<n_word; y++){
-        for(int x=0; x<n_word; x++){
-            printf("%1.1f ", p_recog[y][x]);
-        }
-        printf("\n");    
-    }
-    printf("\n");
-    printf("sentence -> Idx sentence\n");
-    for( int i=0; i<length; i++){
-        printf("%d ", sentence[i]);    
-    }
-    printf("\n");
- */
