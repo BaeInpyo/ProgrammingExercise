@@ -2,60 +2,78 @@ import sys
 
 
 """
-전략
+Let's consider given sentence 'A' as list of n words, i.e. A1, ... An where Ak denotes kth word in sentence.
+We want to find the new sentence 'B' that maximizes conditional probability of B given A ( P(B|A) ).
+There can be m^n cases that B can occur. So we cannot calculate all these cases.
 
-주어진 문장을 n개의 word로 이루어진 list A라고 하자.
-cache_val[i][j] = 길이가 i이고 Wj로 끝나는 문장 중 조건부 확률의 최대값이라고 하자.
-그러면 다음의 수식이 성립한다.
-1) cache_val[i][j] = max(cache_val[i-1][k] * (Wk 다음에 Wj가 나타날 확률) * (Ai를 Wj로 분류할 확률), 0 <= k < m)
+After taking a time, I found that
+P(B|A) = P(B1...Bn | A1...An) = P(B1...Bn-1 | A1...An-1) * P(Bn was mis-classified as An) * P(Bn-1 leads to Bn).
+  
+We can derive below relation.
+W: our vocabulary of size m
+S: given sentence with length n
+B: list of length m that denotes B[i] = P(Wi appears at first position of sentence)
+T: matrix of size (m x m) that denotes T[i][j] = P(Wi leads to Wj)
+M: matrix of size (m x m) that denotes M[i][j] = P(classify Wi as Wj)
+cache[i][j]: maximum conditional probability, i.e P(B|S) where B is end with Wj and length of B is i \
+    0 <= i < n, 0 <= j < m
+cache[i][j] = max(cache[i-1][k] * T[k][j] * M[j][Si's index])
+cache[0][j] = B[j] * M[0][S0's index]
+cache_recon[i][j] = index of k that made cache[i][j]
+cache_recon[0][j] = j
 
-1 <= i <= n, 0 <= j < m의 순서로 cache_val을 채울 수 있고
-cache_val[n][:] 중 max인 값이 최대 조건부 확률이다.
-
-주어진 문장에 대해 조건부 확률의 최대값이 아니라 조건부 확률이 최대인 문장을 직접 구해야 하므로 back tracking을 위해 cache_recon도 이용한다.
-
-cache_recon[i][j] = 1) 수식의 cache_val[i][j]의 값을 설정하게한 단어의 index이다.
-cache_val[0][j]의 값을 설정하게한 단어는 j이다.
-
-
+Then, maximum conditional probability is max(cache[n-1]) and we can construct that sentence by following cache_recon.  
 """
 
 
+def find_max(arr):
+    max_index = 0
+    max_value = arr[0]
+
+    for index, value in enumerate(arr):
+        if value > max_value:
+            max_value = value
+            max_index = index
+
+    return max_index, max_value
+
+
 def solution(sentence, word_to_idx, idx_to_word, B, T, M, m, n):
-    cache_val = [[0] * m for _ in range(n+1)]
-    cache_recon = [[0] * m for _ in range(n+1)]
+    cache = [[0] * m for _ in range(n)]
+    cache_recon = [[0] * m for _ in range(n)]
 
     # initialize cache
-    first_word_index = word_to_idx[sentence[0]]
+    word_index = word_to_idx[sentence[0]]
     for j in range(m):
-        cache_val[1][j] = B[j] * M[first_word_index][j]
-        cache_recon[1][j] = j
+        cache[0][j] = B[j] * M[j][word_index]
+        cache_recon[0][j] = j
 
-    # fill table
-    for i in range(2, n+1):
+    # fill cache and cache_recon
+    for i in range(1, n):
         for j in range(m):
-            cand = []
-            curr_word_index = word_to_idx[sentence[i-1]]
+            candidates = [0] * m
             for k in range(m):
-                cand.append(cache_val[i-1][k] * T[k][j] * M[j][curr_word_index])
+                candidates[k] = cache[i-1][k] * T[k][j]
 
-            max_value = max(cand)
-            max_index = cand.index(max_value)
-            cache_val[i][j] = max_value
+            max_index, max_value = find_max(candidates)
+            si_index = word_to_idx[sentence[i]]
+            max_value *= M[j][si_index]
+            cache[i][j] = max_value
             cache_recon[i][j] = max_index
 
-    # make sentence
-    max_value = max(cache_val[n])
-    index = cache_val[n].index(max_value)
-    result = [idx_to_word[index]]
-    i = n
-    while i > 1:
-        index = cache_recon[i][index]
-        result.insert(0, idx_to_word[index])
+    # re-construct sentence
+    max_index, _ = find_max(cache[n-1])
+    result = [idx_to_word[max_index]]
+    i, j = n-1, max_index
+    while True:
+        if i == 0:
+            break
+
+        j = cache_recon[i][j]
         i -= 1
+        result.insert(0, idx_to_word[j])
 
     return ' '.join(result)
-
 
 
 if __name__ == "__main__":
@@ -84,6 +102,3 @@ if __name__ == "__main__":
 
     for a in answers:
         print(a)
-
-
-
