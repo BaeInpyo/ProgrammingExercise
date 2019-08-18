@@ -4,18 +4,18 @@
 
 using namespace std;
 
-int num_tests;
-int gen;
-int start_index;
-int len;
+typedef unsigned long long int l_int;
 
-int count_char[N+1];
-string cache_sequence[N+1];
-string result_sequence = "";
+int num_tests;
+int in_gen;
+l_int in_start;
+int in_len;
+
+l_int count_char[N+1];
+string result_seq = "";
 
 void init_cache() {
 	for (int i = 0; i <= N; ++i) {
-		cache_sequence[i] = "";
 		count_char[i] = 0;
 	}
 }
@@ -24,74 +24,58 @@ void init_cache() {
  * Calculate the number of characters in nth sequence
  */
 void calculate_count() {
-	count_char[0] = 2;
-	for (int i = 1; i <= N; ++i) {
+	count_char[0] = 5;
+	count_char[1] = 5;
+	for (int i = 2; i <= N; ++i) {
 		count_char[i] = count_char[i-1] * 2 + 1;
 	}
 }
 
-/*
- * Get sequence of nth generation
- */
-string get_sequence(int nth) {
-	string &temp_sequence = cache_sequence[nth];
-
-	if (temp_sequence.size() != 0) return temp_sequence;
-
-	if (nth == 0) { temp_sequence = "FX"; }
-	if (nth == 1) { temp_sequence = "FX+YF"; }
-	for (int i = 2; i <= nth; ++i) {
-		cache_sequence[i] = "FX-YF";
-		for (int j = 1; j < i-1; ++j) {
-			cache_sequence[i] = cache_sequence[j] + "-" + cache_sequence[i];
-		}
-		cache_sequence[i] = cache_sequence[i-1] + "+" + cache_sequence[i];
+void print_seq(int nth, l_int start, int len) {
+	if (nth <= 1) {
+		string temp_seq;
+		if (nth == 0) temp_seq = "FX-YF";
+		else temp_seq = "FX+YF";
+		result_seq += temp_seq.substr(start-1, len);
+		return;
 	}
 
-	return temp_sequence;
-}
-
-void make_result(int nth) {
-	while (len > 0) {
-		string temp_sequence = get_sequence(nth);
-		if (start_index + len - 1 >= temp_sequence.size()) {
-			result_sequence += temp_sequence.substr(start_index-1);
-		} else {
-			result_sequence += temp_sequence.substr(start_index-1, len);
-			cout << result_sequence << endl;
-			return;
-		}
-		len -= (temp_sequence.size() - start_index + 1);
-		if (len > 0) {
-			if (nth == gen - 1) result_sequence += "+";
-			else result_sequence += "-";
+	int ancestor = nth - 1;
+	while (start > count_char[ancestor]) {
+		start -= count_char[ancestor];
+		if (start == 1) {
+			if (ancestor == nth - 1) result_seq += "+";
+			else result_seq += "-";
 			--len;
-			start_index = 1;
+		} else {
+			--start;
 		}
-		--nth;
+		--ancestor;
 	}
-	cout << result_sequence << endl;
-	return;
+
+	while (len > 0) {
+		l_int subseq_len = count_char[ancestor] - start + 1;
+		if (len < subseq_len) subseq_len = len;
+		print_seq(ancestor, start, subseq_len);
+		len -= subseq_len;
+		if (len > 0) {
+			if (ancestor == nth - 1) result_seq += "+";
+			else result_seq += "-";
+			--len;
+			--ancestor;
+			start = 1;
+		}
+	}
 }
 
 void solution() {
-	int nth = gen - 1;
-
-	while (start_index > count_char[nth]) {
-		start_index -= count_char[nth];
-
-		if (start_index == 1) {
-			if (nth == gen - 1) result_sequence += "+";
-			else result_sequence += "-";
-			--len;
-		} else {
-			--start_index;
-		}
-		
-		--nth;
+	if (in_gen == 0) {
+		string temp_seq = "FX";
+		cout << temp_seq.substr(in_start-1, in_len);
+		return;
 	}
 
-	make_result(nth);
+	print_seq(in_gen, in_start, in_len);
 }
 
 int main() {
@@ -100,8 +84,9 @@ int main() {
 	init_cache();
 	calculate_count();
 	while(--num_tests >= 0) {
-		cin >> gen; cin >> start_index; cin >> len;
-		result_sequence = "";
+		cin >> in_gen; cin >> in_start; cin >> in_len;
+		result_seq = "";
 		solution();
+		cout << result_seq << endl;
 	}
 }
