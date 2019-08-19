@@ -36,7 +36,9 @@ int getLis(int idx){ // idx를 시작으로 제일 긴 lis
         if((arr[idx] < arr[n_idx]) && (lis[n_idx]==max_lis)){
             nexts[idx][n_nexts[idx]]=n_idx;
             n_nexts[idx]++;
-            
+            if(n_total[n_idx]>=k_th){
+                n_total[idx]=k_th;
+            }
             n_total[idx] += n_total[n_idx];
         }
     }
@@ -107,7 +109,7 @@ void init(){
 }
 
 int main(){
-    //freopen("input.txt","r",stdin);
+    freopen("input.txt","r",stdin);
     int testcase;
     scanf("%d", &testcase);
     for(int tc=1; tc<=testcase; tc++){
@@ -126,4 +128,5 @@ int main(){
 }
 
 // 음... 전체 경우가 long long int마저 넘은건가?
-// 그러면 k_th 가 넘는거에 대해서는 그만 구해야하나?
+// 그러면 k_th 가 넘는거에 대해서는 그만 구해야하나? 아예 long long int 마저도 넘어버려서 에러떴나봄
+// -> 그래서 n_total이 k_th가 넘으면 그냥 k_th값을 넣어줌.
