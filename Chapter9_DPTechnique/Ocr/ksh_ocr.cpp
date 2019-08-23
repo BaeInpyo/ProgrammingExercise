@@ -5,11 +5,11 @@
 #define MOD 10007
 
 char words[MAX_N_WORD][WORD_LENGTH];
-float p_first[MAX_N_WORD];
-float p_next[MAX_N_WORD][MAX_N_WORD];
-float p_recog[MAX_N_WORD][MAX_N_WORD];
+double p_first[MAX_N_WORD];
+double p_next[MAX_N_WORD][MAX_N_WORD];
+double p_recog[MAX_N_WORD][MAX_N_WORD];
 
-float memo[MAX_POS][MAX_N_WORD];
+double memo[MAX_POS][MAX_N_WORD];
 int memo_valid[MAX_POS][MAX_N_WORD];
 int prev_word[MAX_POS][MAX_N_WORD];
 int valid;
@@ -63,7 +63,7 @@ int wordToIdx(char *word){
     return w_idx;
 }
 
-float probability(int pos, int curr_idx){
+double probability(int pos, int curr_idx){
     if (memo_valid[pos][curr_idx]==valid){
         return memo[pos][curr_idx];
     }
@@ -84,15 +84,15 @@ float probability(int pos, int curr_idx){
         return 0;
     }
     // body
-    float max = 0;
+    double max = 0;
     int max_prev_idx = 0;
     for(int prev_idx=0; prev_idx<n_word; prev_idx++){
         if(p_next[prev_idx][curr_idx]==0){
             continue;
         }
 
-        float p_prev = probability(pos-1, prev_idx);
-        float p_curr = p_prev * p_recog[curr_idx][recog_idx] * p_next[prev_idx][curr_idx];
+        double p_prev = probability(pos-1, prev_idx);
+        double p_curr = p_prev * p_recog[curr_idx][recog_idx] * p_next[prev_idx][curr_idx];
             
         if (p_curr > max){
             max = p_curr;
@@ -107,10 +107,10 @@ float probability(int pos, int curr_idx){
 }
 /////////////////////////   solution   //////////////////////////////
 void solution(){
-    float max = 0;
+    double max = 0;
     int start_word_idx = 0;
     for(int w_idx=0; w_idx<n_word; w_idx++){
-        float p_curr = probability(length-1, w_idx);
+        double p_curr = probability(length-1, w_idx);
         if(p_curr > max){
             start_word_idx = w_idx;
             max = p_curr;
@@ -130,7 +130,6 @@ void solution(){
 
 //////////////////////////   main    ////////////////////////////////
 int main(){
-    freopen("input.txt","r",stdin);
     int testcase;
     scanf(" %d %d ", &n_word, &testcase);
     for(int i=0; i<n_word; i++){
@@ -138,16 +137,16 @@ int main(){
         insertHash(words[i], i);
     }
     for(int i=0; i<n_word; i++){
-        scanf("%f", &p_first[i]);
+        scanf("%lf", &p_first[i]);
     }
     for(int y=0; y<n_word; y++){
         for(int x=0; x<n_word; x++){
-            scanf("%f", &p_next[y][x]);
+            scanf("%lf", &p_next[y][x]);
         }
     }
     for(int y=0; y<n_word; y++){
         for(int x=0; x<n_word; x++){
-            scanf("%f", &p_recog[y][x]);
+            scanf("%lf", &p_recog[y][x]);
         }
     }
     
@@ -172,5 +171,3 @@ int main(){
 
     return 0;
 }
-
-
