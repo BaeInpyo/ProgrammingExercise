@@ -1,54 +1,64 @@
-from collections import OrderedDict
 import sys
+import bisect
+from collections import OrderedDict
 envDict = {}
 pickDict = {}
+trackingLIS = {}
+KLIS = []
 
 def solution(prevNum, currIdx, numList):
-    result = 0
+    lis = 1
+    if envDict.get(currIdx, -1) != -1:
+        lis = envDict[currIdx]
+        temp = pickDict[prevNum].get(lis, [])
+        bisect.insort(temp, numList[currIdx])
+        pickDict[prevNum][lis] = temp
+        return lis
+    for idx in range(currIdx, len(numList)):
+        num = numList[idx]
+        if numList[currIdx] < num:
+            result = solution(numList[currIdx], idx, numList)+1
+            if lis <= result:
+                lis = result
+                envDict[currIdx] = lis
+    temp = pickDict[prevNum].get(lis, [])
+    bisect.insort(temp, numList[currIdx])
+    pickDict[prevNum][lis] = temp
+    return lis
 
-    if currIdx >= len(numList):
-        return 0
+# 오늘의 교훈 : recunstruct 과정에서도 캐싱이 필요하다
+def getAllLIS(currPrevNum, numList, LIS):
+    if envDict.get(currPrevNum, -1) != -1:
+        return envDict[currPrevNum]
 
-    if envDict.get((prevNum, currIdx), -1) != -1:
-        return envDict[(prevNum, currIdx)]
+    if LIS == 0:
+        return 1
+    currLISDict = pickDict[currPrevNum].get(LIS, -1)
+    if currLISDict == -1:
+        return 1
+    total = 0
 
-    currNum = numList[currIdx]
 
-    if prevNum < currNum:
-        pickCase = solution(currNum, currIdx+1, numList) + 1
-        skipCase = solution(prevNum, currIdx+1, numList)
+    for num in currLISDict:
+        trackingLIS[currPrevNum][num] = getAllLIS(num, numList, LIS-1)
+        total += trackingLIS[currPrevNum][num]
 
-        if pickCase >= skipCase:
-            pickDict[prevNum][currIdx] = currNum
-
-        envDict[(prevNum, currIdx)] = max(pickCase, skipCase)
-        return max(pickCase, skipCase)
-            
-    else:
-        skipCase = solution(prevNum, currIdx+1, numList)
-        envDict[(prevNum, currIdx)] = skipCase
-        return skipCase
-
-    return result
-
-def getAllLIS(currPrevNum):
-    result = []
-
-    if pickDict[currPrevNum] == {}:
-        return ['']
-
-    prevPickedNum = 999999
-    # pickDict을 일단 idx순으로 정렬
-    candList = sorted(list(pickDict[currPrevNum].items()), key=lambda x:x[0])
-    for _, candNum in candList:
-        # 인덱스가 이전에 픽됐던 숫자보다 크고 and 이전에 픽됐던 숫자보다 크기가 작다면 경우의수에 추가
-        if candNum < prevPickedNum:
-            prevPickedNum = candNum
-            result += (map(lambda x: str(candNum)+' '+x.rstrip(), getAllLIS(candNum)))
-    return result
+    envDict[currPrevNum] = total
+    return total
+    
+def getKLIS(K, numList, prevNum):
+    currDepthDict = trackingLIS[prevNum]
+    for num, numOfLis in currDepthDict.items():
+        nextK = K-numOfLis
+        if nextK <= 0:
+            KLIS.append(str(num))
+            return getKLIS(K, numList, num)
+        else:
+            K=nextK
 
 def initPickDict(x):
     pickDict[int(x)] = {}
+    trackingLIS[int(x)] = OrderedDict()
     return int(x)
 
 if __name__ == '__main__':
@@ -56,12 +66,22 @@ if __name__ == '__main__':
     C = int(sys.stdin.readline())
     for _ in range(C):
         envDict = {}
-        pickDict = {0:{}}
+        pickDict = {-1:OrderedDict(), 0:OrderedDict()}
+        trackingLIS = {-1:OrderedDict(), 0:OrderedDict()}
+        KLIS = []
         N, K = list(map(int, sys.stdin.readline().rstrip().split()))
-        numList = list(map(initPickDict, sys.stdin.readline().rstrip().split()))
+        numList = [0]+list(map(initPickDict, sys.stdin.readline().rstrip().split()))
+        LIS = solution(-1, 0, numList)
+        print(LIS-1)
+        envDict={}
+        getAllLIS(-1, numList, LIS)
+        #print(trackingLIS)
+        getKLIS(K, numList, -1)
+        del KLIS[0]
+        print(' '.join(KLIS))
+        
 
-        print(solution(0, 0, numList))
-        print(sorted(getAllLIS(0))[K-1])
+        #print(sorted(getAllLIS(0))[K-1])
 
         # pickDict : {(7, 3): 8, (6, 3): 8, (6, 2): 7, (5, 3): 8, (5, 2): 7, (5, 1): 6, (3, 7): 4, (2, 7): 4, (2, 6): 3, (1, 7): 4, (1, 6): 3, (1, 5): 2, (0, 7): 4, (0, 6): 3, (0, 5): 2, (0, 4): 1, (0, 0): 5}
         # (prevNum, currIdx): currNum
