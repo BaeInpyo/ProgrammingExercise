@@ -18,38 +18,27 @@ Instead of finding all LISs and sort it, calculate number of LISs start with giv
 """
 
 
-def start_with_num(num, length, cache_recon, num_to_idx, idx_to_num):
-    if length == 1:
-        return 1
+def find_next(curr, k):
+    # find next node in curr using k
+    # return index of curr
 
-    result = 0
-    start_index = num_to_idx[num]
-    for i in range(start_index+1, len(cache_recon)):
-        curr = cache_recon[i]
-        if start_index in curr:
-            result += start_with_num(idx_to_num[i], length-1, cache_recon, num_to_idx, idx_to_num)
+    # case: only 1 node to go
+    if len(curr) == 1:
+        return 0
 
-    return result
+    # check prev index constraint
 
+    if k <= curr[0][1]:
+        return 0
 
-def find_all_LIS(num, length, cache_recon, num_to_idx, idx_to_num):
-    if length == 1:
-        return [[num]]
-
-    candidates = []
-    start_index = num_to_idx[num]
-    for i in range(start_index+1, len(cache_recon)):
-        curr = cache_recon[i]
-        if start_index in curr:
-            candidates.extend(find_all_LIS(idx_to_num[i], length-1, cache_recon, num_to_idx, idx_to_num))
-
-    return [[num] + x for x in candidates]
+    for i in range(len(curr) - 1):
+        start = curr[i][1]
+        end = start + curr[i+1][1]
+        if start <= k <= end:
+            return i+1
 
 
 def solution(N, K, arr):
-    num_to_idx = { x[1]: x[0] for x in enumerate(arr) }
-    idx_to_num = arr
-
     # initialize cache
     cache = [1] * N
     cache_recon = [[i] for i in range(N)]
@@ -71,18 +60,68 @@ def solution(N, K, arr):
         cache[i] = max_length
         cache_recon[i] = max_indexes
 
-    LIS_length = max(cache)
-    k = 0
-    # find kth LIS
-    for num in sorted(arr):
-        swn = start_with_num(num, LIS_length, cache_recon, num_to_idx, idx_to_num)
-        if k < K <= k + swn:
-            all_LISs = find_all_LIS(num, LIS_length, cache_recon, num_to_idx, idx_to_num)
-            all_LISs.sort()
-            return all_LISs[K-k-1]
+    # initialize tree
+    # each node is (index, count)
+    max_length = max(cache)
+    max_indexes = [x[0] for x in enumerate(cache) if x[1] == max_length]
+    tree = [(x, 1, []) for x in max_indexes]  # (index, count, next indexes)
+    tree.sort(key=lambda x: arr[x[0]])  # sort by arr[index]
+    tree = [tree]
 
-        else:
-            k += swn
+    # fill tree
+    for _ in reversed(range(1, max_length)):
+        dic = {}
+        for node in tree[0]:
+            index, count, _ = node
+            parent = cache_recon[index]
+            for p in parent:
+                if p in dic:
+                    dic[p][0] += count
+                    dic[p][1].append(index)
+                else:
+                    dic[p] = [count, [index]]
+
+        curr = [(key, dic[key][0], dic[key][1]) for key in dic]    # (index, count, next_indexes)
+        curr.sort(key=lambda x: arr[x[0]])   # sort by arr[index]
+        tree.insert(0, curr)    # insert at first
+
+    assert len(tree) == max_length
+
+    # travel tree
+    result = []
+
+    # root
+    curr = tree[0]
+    if len(curr) == 1 or K <= curr[0][1]:
+        result.append(curr[0])
+    else:
+        for i in range(len(curr)-1):
+            start = curr[i][1]
+            end = start + curr[i+1][1]
+            if start <= K <= end:
+                result.append(curr[i+1])
+                K -= curr[i+1][1]
+
+    # internal nodes
+    for depth in range(1, max_length-1):
+        prev = result[-1]   # (index, count, next_indexes)
+        curr = [x for x in tree[depth] if x[0] in prev[2]]
+        next_index = find_next(curr, K)
+
+        if next_index != 0:
+            K -= curr[next_index][1]
+
+        result.append(curr[next_index]) # append number in arr
+
+    # leaf node
+    # TODO: check connectibility
+    prev = result[-1]
+    curr = [x for x in tree[max_length-1] if x[0] in prev[2]]
+    result.append(curr[K-1])
+
+    result = [arr[x[0]] for x in result]
+
+    return result
 
 
 if __name__ == "__main__":
@@ -98,5 +137,6 @@ if __name__ == "__main__":
         answers.append(solution(N, K, arr))
 
     for a in answers:
-        print(len(a), a)
+        print(len(a))
+        print(' '.join([str(x) for x in a]))
 
