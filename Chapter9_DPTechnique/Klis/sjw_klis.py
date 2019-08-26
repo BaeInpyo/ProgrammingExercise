@@ -64,7 +64,7 @@ def solution(N, K, arr):
     # each node is (index, count)
     max_length = max(cache)
     max_indexes = [x[0] for x in enumerate(cache) if x[1] == max_length]
-    tree = [(x, 1, []) for x in max_indexes]  # (index, count, next indexes)
+    tree = [(x, 1) for x in max_indexes]  # (index, count)
     tree.sort(key=lambda x: arr[x[0]])  # sort by arr[index]
     tree = [tree]
 
@@ -72,16 +72,15 @@ def solution(N, K, arr):
     for _ in reversed(range(1, max_length)):
         dic = {}
         for node in tree[0]:
-            index, count, _ = node
+            index, count = node
             parent = cache_recon[index]
             for p in parent:
                 if p in dic:
-                    dic[p][0] += count
-                    dic[p][1].append(index)
+                    dic[p] += count
                 else:
-                    dic[p] = [count, [index]]
+                    dic[p] = count
 
-        curr = [(key, dic[key][0], dic[key][1]) for key in dic]    # (index, count, next_indexes)
+        curr = list(dic.items())    # (index, count)
         curr.sort(key=lambda x: arr[x[0]])   # sort by arr[index]
         tree.insert(0, curr)    # insert at first
 
@@ -104,8 +103,8 @@ def solution(N, K, arr):
 
     # internal nodes
     for depth in range(1, max_length-1):
-        prev = result[-1]   # (index, count, next_indexes)
-        curr = [x for x in tree[depth] if x[0] in prev[2]]
+        prev = result[-1]   # (index, count)
+        curr = [x for x in tree[depth] if prev[0] in cache_recon[x[0]]]     # apply cache_recon for connectivity
         next_index = find_next(curr, K)
 
         if next_index != 0:
@@ -114,9 +113,8 @@ def solution(N, K, arr):
         result.append(curr[next_index]) # append number in arr
 
     # leaf node
-    # TODO: check connectibility
     prev = result[-1]
-    curr = [x for x in tree[max_length-1] if x[0] in prev[2]]
+    curr = [x for x in tree[max_length-1] if prev[0] in cache_recon[x[0]]]  # apply cache_recon for connectivity
     result.append(curr[K-1])
 
     result = [arr[x[0]] for x in result]
