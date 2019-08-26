@@ -24,18 +24,19 @@ def find_next(curr, k):
 
     # case: only 1 node to go
     if len(curr) == 1:
-        return 0
+        return 0, 0
 
     # check prev index constraint
 
     if k <= curr[0][1]:
-        return 0
+        return 0, 0
 
+    end = curr[0][1]
     for i in range(len(curr) - 1):
-        start = curr[i][1]
+        start = end
         end = start + curr[i+1][1]
         if start <= k <= end:
-            return i+1
+            return i+1, start
 
 
 def solution(N, K, arr):
@@ -105,10 +106,8 @@ def solution(N, K, arr):
     for depth in range(1, max_length-1):
         prev = result[-1]   # (index, count)
         curr = [x for x in tree[depth] if prev[0] in cache_recon[x[0]]]     # apply cache_recon for connectivity
-        next_index = find_next(curr, K)
-
-        if next_index != 0:
-            K -= curr[next_index][1]
+        next_index, accumulated = find_next(curr, K)
+        K -= accumulated
 
         result.append(curr[next_index]) # append number in arr
 
