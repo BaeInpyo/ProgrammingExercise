@@ -3,9 +3,11 @@
 using namespace std;
 
 #define N 500
+#define MAX 2147483648 // 2^31
 
 int num_tests;
-int n, k;
+int n;
+long long int k;
 int seq[N+1];
 int answer[N+1];
 
@@ -24,7 +26,7 @@ void init_cache() {
 }
 
 void set_next(int start, int next_idx, bool init) {
-    int count_temp = 0;
+    long long int count_temp = 0;
     if (init) {
         count[start] = 0;
         klis_next[start][0] = next_idx;
@@ -43,7 +45,9 @@ void set_next(int start, int next_idx, bool init) {
     if (next_idx == n+1)
         count_temp = 1;
     else count_temp = count[next_idx];
-    count[start] += count_temp;
+    
+    if (count_temp > MAX) count[start] = count_temp;
+    else count[start] += count_temp;
 }
 
 int lis(int start) {
@@ -74,7 +78,7 @@ void find_answer() {
     while (true) {
         int next_idx = klis_next[i][j];
         if (next_idx == n+1) break;
-        int count_temp = count[next_idx];
+        long long int count_temp = count[next_idx];
         if (count_temp >= k) {
             i = next_idx;
             j = 0;
