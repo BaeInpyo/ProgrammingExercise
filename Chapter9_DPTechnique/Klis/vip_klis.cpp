@@ -5,50 +5,96 @@ using namespace std;
 #define N 500
 
 int num_tests;
-int n, k, k_cnt;
+int n, k;
 int seq[N+1];
-int recording[N+1];
 int answer[N+1];
-int max_len = 0;
 
-void copy_to_answer() {
-    for (int i = 0; i <= max_len; ++i) {
-        answer[i] = recording[i];
+int max_len[N+1];
+int klis_next[N+1][N+1];
+long long int count[N+1];
+
+void init_cache() {
+    for(int i = 0; i < n+1; ++i) {
+        max_len[i] = 0;
+        count[i] = 0;
+        for (int j = 0; j < n+1; ++j) {
+            klis_next[i][j] = -1;
+        }
     }
 }
 
-int lis(int start, int cnt) {
-    int elem = seq[start];
-    int len = 1;
-    int max_len_internal = 1;
-    recording[cnt] = elem;
-    if (cnt > max_len) {
-        max_len = cnt;
-        k_cnt = k - 1;
-        if (k_cnt == 0) {
-            copy_to_answer();
+void set_next(int start, int next_idx, bool init) {
+    int count_temp = 0;
+    if (init) {
+        count[start] = 0;
+        klis_next[start][0] = next_idx;
+        for (int i = 1; i < n+1; ++i) {
+            if (klis_next[start][i] == -1) break;
+            klis_next[start][i] = -1;
         }
-    } else if (cnt == max_len) {
-        --k_cnt;
-        if (k_cnt == 0) {
-            copy_to_answer();
+    } else {
+        int i = 0;
+        for (; i < n+1; ++i) {
+            if (klis_next[start][i] == -1) break;
         }
+        klis_next[start][i] = next_idx;
     }
-    
+
+    if (next_idx == n+1)
+        count_temp = 1;
+    else count_temp = count[next_idx];
+    count[start] += count_temp;
+}
+
+int lis(int start) {
+    int elem = seq[start];
+    int &len = max_len[start];
+    if (len != 0) return len;
+    len = 1;
     for (int i = n; i > start; --i) {
         if (elem < seq[i]) {
-            len = 1 + lis(i, cnt+1);
-            max_len_internal = (max_len_internal < len) ? len : max_len_internal;
+            int temp_len = 1 + lis(i);
+            if (len < temp_len) {
+                len = temp_len;
+                set_next(start, i, true);
+            } else if (len == temp_len) {
+                set_next(start, i, false);
+            }
         }
     }
-    return max_len_internal;
+    if (len == 1) set_next(start, n+1, true);
+
+    return len;
+}
+
+void find_answer() {
+    int i = 0, j = 0;
+    int ans_idx = 0;
+
+    while (true) {
+        int next_idx = klis_next[i][j];
+        if (next_idx == n+1) break;
+        int count_temp = count[next_idx];
+        if (count_temp >= k) {
+            i = next_idx;
+            j = 0;
+            answer[ans_idx++] = seq[next_idx];
+        } else {
+            k -= count_temp;
+            ++j;
+        }
+    }
 }
 
 void solution() {
-    lis(0, 0);
+    init_cache();
 
-    cout << max_len << endl;
-    for (int i = 1; i <= max_len; ++i) {
+    lis(0);
+
+    find_answer();
+    int answer_len = max_len[0] - 1;
+    cout << answer_len << endl;
+    for (int i = 0; i < answer_len; ++i) {
         cout << answer[i] << " ";
     }
     cout << endl;
@@ -59,7 +105,6 @@ int main() {
     while (--num_tests >= 0) {
         cin >> n; cin >> k;
         seq[0] = -1;
-        max_len = 0;
         for (int i = 1; i <= n; ++i) {
             cin >> seq[i];
         }
