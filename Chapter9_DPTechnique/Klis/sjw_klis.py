@@ -2,7 +2,7 @@ import sys
 
 
 """
-At first glance, we can calculate LIS by finding all sub-sequences and conditioning IS(Increasing Sub-sequence) and
+We can calculate LIS by finding all sub-sequences and conditioning IS(Increasing Sub-sequence) and
 calculate maximum length. But there can be 2^n sub-sequences, it's intractable.
 
 LIS has next characteristic.
@@ -14,28 +14,31 @@ We can use cache_recon to re-construct LIS and cache_recon has following charact
 cache_recon[i] = list of ks that made cache[i] 
 
 Since we want to find Kth LIS itself, we should use cache_recon.
-Instead of finding all LISs and sort it, calculate number of LISs start with given number.
+Find all LISs and sorting it will very inefficient because LIS as at most 2^(n/2), e.g. [2, 1, 4, 3, 6, 5].
+
+We can back track from last element of LIS to first element of LIS using cache_recon.
+This can be represented as tree. Each node in tree has 2 value. First is index in A and second is the number of LISs
+that pass node.
+
+In summary, we can calculate Kth using following method.
+1. Make cache and cache_recon.
+2. Back track cache_recon and make tree. Be careful at connectivity between parent and child (Not fully connected).
+3. Traverse tree to find Kth LIS.
 """
 
 
 def find_next(curr, k):
     # find next node in curr using k
     # return index of curr
-
-    # case: only 1 node to go
-    if len(curr) == 1:
-        return 0
-
-    # check prev index constraint
-
     if k <= curr[0][1]:
-        return 0
+        return 0, 0
 
+    end = curr[0][1]
     for i in range(len(curr) - 1):
-        start = curr[i][1]
+        start = end
         end = start + curr[i+1][1]
         if start <= k <= end:
-            return i+1
+            return i+1, start
 
 
 def solution(N, K, arr):
@@ -61,10 +64,10 @@ def solution(N, K, arr):
         cache_recon[i] = max_indexes
 
     # initialize tree
-    # each node is (index, count)
+    # each node in tree is (index, count)
     max_length = max(cache)
     max_indexes = [x[0] for x in enumerate(cache) if x[1] == max_length]
-    tree = [(x, 1, []) for x in max_indexes]  # (index, count, next indexes)
+    tree = [(x, 1) for x in max_indexes]  # (index, count)
     tree.sort(key=lambda x: arr[x[0]])  # sort by arr[index]
     tree = [tree]
 
@@ -72,55 +75,37 @@ def solution(N, K, arr):
     for _ in reversed(range(1, max_length)):
         dic = {}
         for node in tree[0]:
-            index, count, _ = node
+            index, count = node
             parent = cache_recon[index]
             for p in parent:
                 if p in dic:
-                    dic[p][0] += count
-                    dic[p][1].append(index)
+                    dic[p] += count
                 else:
-                    dic[p] = [count, [index]]
+                    dic[p] = count
 
-        curr = [(key, dic[key][0], dic[key][1]) for key in dic]    # (index, count, next_indexes)
+        curr = list(dic.items())    # (index, count)
         curr.sort(key=lambda x: arr[x[0]])   # sort by arr[index]
         tree.insert(0, curr)    # insert at first
 
     assert len(tree) == max_length
 
-    # travel tree
+    # traverse tree
     result = []
 
-    # root
-    curr = tree[0]
-    if len(curr) == 1 or K <= curr[0][1]:
-        result.append(curr[0])
-    else:
-        for i in range(len(curr)-1):
-            start = curr[i][1]
-            end = start + curr[i+1][1]
-            if start <= K <= end:
-                result.append(curr[i+1])
-                K -= curr[i+1][1]
+    for depth in range(max_length):
+        # root
+        if depth == 0:
+            curr = tree[depth]
+        # below root
+        elif depth < max_length:
+            prev = result[-1]
+            curr = [x for x in tree[depth] if prev in cache_recon[x[0]]]    # consider connectivity
 
-    # internal nodes
-    for depth in range(1, max_length-1):
-        prev = result[-1]   # (index, count, next_indexes)
-        curr = [x for x in tree[depth] if x[0] in prev[2]]
-        next_index = find_next(curr, K)
+        next_index, accumulated = find_next(curr, K)
+        result.append(curr[next_index][0])
+        K -= accumulated
 
-        if next_index != 0:
-            K -= curr[next_index][1]
-
-        result.append(curr[next_index]) # append number in arr
-
-    # leaf node
-    # TODO: check connectibility
-    prev = result[-1]
-    curr = [x for x in tree[max_length-1] if x[0] in prev[2]]
-    result.append(curr[K-1])
-
-    result = [arr[x[0]] for x in result]
-
+    result = [arr[x] for x in result]    # index to number
     return result
 
 
