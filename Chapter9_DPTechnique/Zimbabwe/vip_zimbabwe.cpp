@@ -6,7 +6,7 @@
 
 using namespace std;
 
-using l_int = unsigned long int;
+using l_int = unsigned long long;
 
 int shift_amount = 4;
 int num_tests;
@@ -17,8 +17,8 @@ int candy_count;
 unordered_map<l_int, int> cache; // comb, remainder : count
 
 l_int convert_single_digit(int digit) {
-	l_int res = 1;
-	res = res << shift_amount * digit;
+	l_int res;
+	res = 1ULL << shift_amount * digit;
 	return res;
 }
 
@@ -29,17 +29,18 @@ l_int convert_every_digit() {
 	for (int i = 0; i < 10; ++i) { num_digit[i] = 0; }
 	for (int i = 0; i < price_len; ++i) { ++num_digit[price[i]]; }
 	for (int i = 0; i < 10; ++i) {
-		res |= num_digit[i] << shift_amount * i;
+		res += num_digit[i] << shift_amount * i;
 	}
 
 	return res;
 }
 
 bool is_valid_digit(l_int comb, int digit) {
-	l_int digit_in_code = convert_single_digit(digit);
-	l_int pos = 15; pos <<= shift_amount * digit; pos &= comb;
+	l_int pos;
+	pos = 15ULL << shift_amount * digit;
+	pos &= comb;
 
-	return ((pos | digit_in_code) > 0);
+	return (pos > 0);
 }
 
 int calculate_remainder(int digit, int cipher) {
@@ -53,6 +54,11 @@ int calculate_remainder(int digit, int cipher) {
 }
 
 int get_remainder_count(l_int comb, int remainder, int comb_len) {
+	if (comb_len == 0) {
+		if (remainder == 0) return 1;
+		else return 0;
+	}
+
 	l_int key = (comb << 5) + remainder;
 	auto res = cache.find(key);
 	if (res != cache.end()) return res->second;
@@ -85,7 +91,8 @@ void solution() {
 			if (is_valid_digit(comb, candidate)) {
 				int sub_comb = comb - convert_single_digit(candidate);
 				int sub_remainder = (remainder + calculate_remainder(candidate, price_len-i)) % candy_count;
-				total_count = (total_count + get_remainder_count(sub_comb, candy_count - sub_remainder, price_len-i-1)) % MOD;
+				int required_remainder = (candy_count - sub_remainder) % candy_count;
+				total_count = (total_count + get_remainder_count(sub_comb, required_remainder, price_len-i-1)) % MOD;
 			}
 		}
 	}
@@ -97,7 +104,7 @@ void change_string_to_num_array(string price_in_str) {
 	int i = 0;
 	price_len = price_in_str.size();
 	for (; i < price_len; ++i) {
-		price[i] = price_in_str[i];
+		price[i] = price_in_str[i]-48;
 	}
 
 	for (; i < 15; ++i) {
