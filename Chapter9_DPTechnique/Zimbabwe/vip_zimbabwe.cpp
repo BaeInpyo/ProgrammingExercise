@@ -67,7 +67,7 @@ int get_remainder_count(l_int comb, int remainder, int comb_len) {
 	
 	for (int candidate = 9; candidate >= 0; --candidate) {
 		if (is_valid_digit(comb, candidate)) {
-			int sub_comb = comb - convert_single_digit(candidate);
+			l_int sub_comb = comb - convert_single_digit(candidate);
 			int sub_remainder = remainder - calculate_remainder(candidate, comb_len);
 			if (sub_remainder < 0) sub_remainder += candy_count;
 			cache[key] += get_remainder_count(sub_comb, sub_remainder, comb_len - 1);
@@ -89,7 +89,8 @@ void solution() {
 		}
 		for (int candidate = msb - 1; candidate >= 0; --candidate) {
 			if (is_valid_digit(comb, candidate)) {
-				int sub_comb = comb - convert_single_digit(candidate);
+				l_int code_of_a_digit = convert_single_digit(candidate);
+				l_int sub_comb = comb - code_of_a_digit;
 				int sub_remainder = (remainder + calculate_remainder(candidate, price_len-i)) % candy_count;
 				int required_remainder = (candy_count - sub_remainder) % candy_count;
 				total_count = (total_count + get_remainder_count(sub_comb, required_remainder, price_len-i-1)) % MOD;
