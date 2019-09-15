@@ -1,7 +1,8 @@
 #include<stdio.h>
+#define INF 87654321
 #define MAX_N 16
 #define MAX_LEN 40
-// 15C0 + 15C1 +... + 15C15 = 2^15
+// 15C0 + 15C1 +... + 15C15 = 2^15 // 1~15번까지 사용한 단어의 개수.
 int N;
 int memo_len[50000];
 int memo_word[50000];
@@ -94,7 +95,7 @@ char* restore(int curr_state){
         return memo_last41[0];
     }
 
-    int append_length_min = 41; // (40 보다 큰 값)
+    int min_total_length = INF; // (40 보다 큰 값)
     char res[41]; // 결과 담아오기 
     for(int curr_word_idx=0; curr_word_idx<N; curr_word_idx++){
         int curr_word_pos = square(curr_word_idx);
@@ -103,12 +104,13 @@ char* restore(int curr_state){
         }
         int last_state = curr_state - curr_word_pos;
         int curr_append_length = append(restore(last_state), word[curr_word_idx], res);
-        if(curr_append_length < append_length_min){
-            append_length_min = curr_append_length;
+        int total_length = memo_len[last_state]+curr_append_length;
+        if(total_length < min_total_length){
+            min_total_length = total_length;
             strcpy(res, memo_last41[curr_state]);
-            memo_len[curr_state]=memo_len[last_state]+append_length_min;
+            memo_len[curr_state]=total_length;
             memo_word[curr_state] = curr_word_idx;
-            memo_added_size[curr_state]=append_length_min;
+            memo_added_size[curr_state]=curr_append_length;
         }
     }
     
@@ -150,7 +152,6 @@ void init(){
 }
 
 int main(){
-    freopen("input.txt","r",stdin);
     int testcase;
     scanf(" %d ", &testcase);
     for(int tc=1; tc<=testcase; tc++){
@@ -161,6 +162,20 @@ int main(){
         }
         solution();
     }
-
-
 }
+
+// 단어 최대 15개에서 단어를 가져왔을 때 걔네로 만들수 있는 
+// 최소 길이, 마지막 단어, 마지막 단어를 넣으면서 추가된 사이즈
+// 예를들어서 총 단어 3개 0,1,2에서 만들 수 있는 최소는
+// 1,2로 구성된 string에서 0이 뒤에 붙는 경우,
+// 0,2로 구성된 string에서 1이 뒤에 붙는 경우,
+// 0,1로 구성된 string에서 2이 뒤에 붙는 경우
+// 이렇게 세개, 즉
+// 15C15 + 14*15C14 + 13*15C13 + ..... + 2 * 15C2 + 15C1 <= 500,000 (모든 경우를 확인하는데 필요한 횟수)
+// 15C15 + 15C14 + 15C13 + ..... + 15C2 + 15C1 <= 50,000 (메모해야하는 모든 경우)
+// 사용한 단어에 대해는 1 아니면 0 
+// 10101 (0,3,5 번째 단어 사용한 것) 이런식으로 메모하겠다.
+
+// 위의 처럼 하면 되는데...
+// 나는 중복제거를 안해서 최근의 40개를 메모해두고 그걸 보고 뒤에붙였다.
+
