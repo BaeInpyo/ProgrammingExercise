@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <string>
 
 using namespace std;
@@ -10,14 +11,15 @@ string input_words[15];
 string distinct_words[15];
 bool subset[15];
 int substring_len[15][15];
-int next_index[15];
 int cache[15][1 << 14];
+int next_index[15][1 << 14];
 
 void init() {
   num_distinct_words = 0;
   for (int i = 0; i < 15; ++i) {
     for (int j = 0; j < (1<<14); ++j) {
       cache[i][j] = -1;
+      next_index[i][j] = -1;
     }
     subset[i] = false;
   }
@@ -114,7 +116,7 @@ int find_shortest(int start, int remains) {
       int len = distinct_words[start].size() + find_shortest(i, calc_remains(i, remains)) - common_len;
       if (len < res) {
         res = len;
-        next_index[start] = i;
+        next_index[start][remains] = i;
       }
     }
   }
@@ -139,7 +141,22 @@ void solution() {
     }
   }
 
-  // TODO: reconstruct
+  int word_cnt = 0;
+  int remains = total;
+  vector<int> answer(num_distinct_words);
+  answer[0] = index;
+  while (++word_cnt <= num_distinct_words) {
+    remains = calc_remains(index, remains);
+    index = next_index[index][remains];
+    answer[word_cnt] = index;
+  }
+
+  cout << distinct_words[answer[0]];
+  for (int i = 1; i < num_distinct_words; ++i) {
+    int len = substring_len[answer[i-1]][answer[i]];
+    cout << distinct_words[answer[i]].substr(len);
+  }
+  cout << endl;
 }
 
 int main() {
