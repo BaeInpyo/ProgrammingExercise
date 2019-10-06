@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <string>
 
 using namespace std;
@@ -9,11 +10,17 @@ int num_distinct_words;
 string input_words[15];
 string distinct_words[15];
 bool subset[15];
+int substring_len[15][15];
 int cache[15][1 << 14];
+int next_index[15][1 << 14];
 
 void init() {
   num_distinct_words = 0;
   for (int i = 0; i < 15; ++i) {
+    for (int j = 0; j < (1<<14); ++j) {
+      cache[i][j] = -1;
+      next_index[i][j] = -1;
+    }
     subset[i] = false;
   }
 }
@@ -35,16 +42,53 @@ bool check_subset(int i, int j) {
   return result;
 }
 
+int calc_substr_len(int left, int right) {
+  int sub_len = 0;
+  string left_word = distinct_words[left];
+  string right_word = distinct_words[right];
+  int len_left = left_word.size();
+  int len_right = right_word.size();
+
+  for (int temp_len = 1; temp_len < len_right; ++temp_len) {
+    bool match = true;
+    int right_index = 0;
+    for (int left_index = len_left - temp_len; left_index < len_left; ++left_index) {
+      if (left_index < 0) {
+        return sub_len;
+      }
+      
+      if (left_word[left_index] != right_word[right_index]) {
+        match = false;
+        break;
+      }
+      ++right_index;
+    }
+    if (match) sub_len = temp_len;
+  }
+
+  return sub_len;
+}
+
 void preprocess() {
   for (int i = 0; i < k; ++i) {
     for (int j = 0; j < k; ++j) {
       if (i == j) continue;
-      if (check_subset(i, j)) break;
+      if (!subset[j] && check_subset(i, j)) {
+        break;
+      }
     }
   }
 
   for (int i = 0; i < k; ++i) {
     if (!subset[i]) distinct_words[num_distinct_words++] = input_words[i];
+  }
+  
+  for (int i = 0; i < num_distinct_words; ++i) {
+    for (int j = 0; j < num_distinct_words; ++j) {
+      if (i != j) {
+        substring_len[i][j] = calc_substr_len(i, j);
+      }
+    }
   }
 }
 
@@ -64,6 +108,18 @@ int find_shortest(int start, int remains) {
   int &res = cache[start][remains];
 
   if (res != -1) return res;
+
+  res = 100000;
+  for (int i = 0; i < num_distinct_words; ++i) {
+    if (exists(i, remains)) {
+      int common_len = substring_len[start][i];
+      int len = distinct_words[start].size() + find_shortest(i, calc_remains(i, remains)) - common_len;
+      if (len < res) {
+        res = len;
+        next_index[start][remains] = i;
+      }
+    }
+  }
 
   return res;
 }
@@ -85,8 +141,22 @@ void solution() {
     }
   }
 
-  cout << index << endl;
-  cout << min_len << endl;
+  int word_cnt = 0;
+  int remains = total;
+  vector<int> answer(num_distinct_words);
+  answer[0] = index;
+  while (++word_cnt <= num_distinct_words) {
+    remains = calc_remains(index, remains);
+    index = next_index[index][remains];
+    answer[word_cnt] = index;
+  }
+
+  cout << distinct_words[answer[0]];
+  for (int i = 1; i < num_distinct_words; ++i) {
+    int len = substring_len[answer[i-1]][answer[i]];
+    cout << distinct_words[answer[i]].substr(len);
+  }
+  cout << endl;
 }
 
 int main() {
