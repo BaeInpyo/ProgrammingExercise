@@ -3,35 +3,31 @@ import os
 
 
 def solution(sushi, budget):
-    sushi.sort(key=lambda x: x['value'] / x['price'], reverse=True)   # value / price
-    result = 0  # sum of value
-    remain = budget - sum([x['price'] for x in sushi])
-
-    # pick best value/price sushi as mush as possible
-    if remain > 0:
-        r, q= divmod(remain, sushi[0]['price'])
-        result += r * sushi[0]['value']  # add value
-        remain = budget - sushi[0]['price'] * r
-    else:
-        remain = budget
-
     # below are similar with knapsack problem
-    cache = dict()  # key: remain, value: sum of value
-    cache[0] = 0    # init cache
+    # sliding cache
+    cache = [0] * 201
 
-    # fill cache
-    for i in range(1, remain+1):
+    # init cache
+    for i in range(1, 201):
         candidates = []
         for s in sushi:
             if s['price'] <= i:
                 candidates.append(cache[i - s['price']] + s['value'])
 
-        if not candidates:
-            cache[i] = 0
-        else:
+        if candidates:
             cache[i] = max(candidates)
 
-    return result + cache[remain]
+    # fill cache
+    for i in range(201, budget+1):
+        value = 0
+        for s in sushi:
+            curr = cache[(i - s['price']) % 201] + s['value']
+            if curr > value:
+                value = curr
+
+        cache[i % 201] = value
+
+    return cache[budget % 201]
 
 
 if __name__ == '__main__':
