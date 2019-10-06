@@ -46,12 +46,12 @@ if __name__ == '__main__':
         sushi = []
         for _ in range(n):
             price, value = [int(x) for x in sys.stdin.readline().strip().split()]
-            sushi.append((price, value))
+            sushi.append((int(price/100), value))
 
         sushi = list(set(sushi))    # keep unique (price, value)
         sushi = [{'price': x[0], 'value': x[1]} for x in sushi]    # convert to list of dict
 
-        answer = solution(sushi, m)
+        answer = solution(sushi, int(m/100))
         answers.append(answer)
 
     for a in answers:
