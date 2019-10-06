@@ -83,9 +83,6 @@ def solution(board):
     return results[result]
 
 if __name__ == '__main__':
-    # freopen equivalent
-    sys.stdin = open(os.path.join(os.path.dirname(__file__), 'input.txt'), 'r')
-
     answers = []
     C = int(sys.stdin.readline().strip())
 
