@@ -1,7 +1,7 @@
 #include <iostream>
 
 #define MAX 20
-#define MAX_BUDGET 200
+#define MAX_BUDGET 201
 
 using namespace std;
 
