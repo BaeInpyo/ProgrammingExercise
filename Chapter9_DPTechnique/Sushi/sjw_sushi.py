@@ -5,32 +5,40 @@ from functools import reduce
 from itertools import combinations
 
 '''
-- lcm([1, 20]) = 232,792,560 (somewhat big number)
-- sum(lcm(n1, n2) for n1, n2 in [1, 200]) = 147,630,370 (still big number)
+NOTE
+- In cpp, function solution_minimal_window() works because cpp is faster enough to iterate over 21,474,836.47
+- But python is slow to iterater over 21,474,836.47
+- Need to reduce number of iterations
+- Trials
+    - lcm([1, 20]) = 232,792,560 (somewhat big number)
+    - sum(lcm(n1, n2) for n1, n2 in [1, 200]) = 147,630,370 (still big number)
+    - min(50000, lcm) works eventually
 '''
 
 def solution_reduce_budget(sushi, budget):
     # reduce total budget to small enough
     # this can lead to fewer iteration
     def lcm(a, b):
-        return int(a * b / gcd(a, b))
+        return a * b // gcd(a, b)
 
     sushi.sort(key=lambda e: e['value'] / e['price'], reverse=True)   # sort by value per price
-    sushi_cleaned = []  # remove unnecessary sushi
 
+    # remove unnecessary sushi
     # if s2['price'] is multiple of s1['price'] and s1 has better (value / price)
     # then s2 is unnecessary because s2 can be replaced by s1
+    sushi_cleaned = []
     for i in range(len(sushi)):
         curr_price = sushi[i]['price']
         if all([curr_price % e['price'] for e in sushi_cleaned]):
             sushi_cleaned.append(sushi[i])
 
-    lcm_pairs = [lcm(x[0], x[1]) for x in combinations([e['price'] for e in sushi_cleaned], 2)]
-    sum_lcm_pairs = sum(lcm_pairs)
+    lcm_all_sushi = reduce(lambda x, y: lcm(x, y), [x['price'] for x in sushi_cleaned])
+    threshold = 50000
+    threshold = min(lcm_all_sushi, threshold)
 
     value = 0   # sum of values
-    if budget > sum_lcm_pairs:
-        count = (budget - sum_lcm_pairs) // sushi_cleaned[0]['price']   # pick best (value / price) AMAP
+    if budget > threshold:
+        count = (budget - threshold) // sushi_cleaned[0]['price']   # pick best (value / price) AMAP
         budget -= count * sushi_cleaned[0]['price']
         value += count * sushi_cleaned[0]['value']
 
@@ -51,7 +59,7 @@ def solution_reduce_budget(sushi, budget):
 
 
 def solution_minimal_window(sushi, budget):
-    # below are similar with knapsack problem
+    # implementation of solution in BOOK but not working for python
     # sliding cache
     cache = [0] * 201
 
