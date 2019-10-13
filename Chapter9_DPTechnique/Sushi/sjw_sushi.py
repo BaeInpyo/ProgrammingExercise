@@ -1,8 +1,11 @@
 import sys
 import os
 from fractions import gcd
-from itertools import reduce
+from functools import reduce
 
+'''
+- lcm([1, 20]) = 232792560 (somewhat big number)
+'''
 
 def solution_reduce_budget(sushi, budget):
     # reduce total budget to small enough
@@ -10,17 +13,17 @@ def solution_reduce_budget(sushi, budget):
     def lcm(a, b):
         return int(a * b / gcd(a, b))
 
-    sushi.sort(key=lambda e: e['value'] / e['price'])   # sort by value per price
+    sushi.sort(key=lambda e: e['value'] / e['price'], reverse=True)   # sort by value per price
     sushi_cleaned = []  # remove unnecessary sushi
 
     # if s2['price'] is multiple of s1['price'] and s1 has better (value / price)
     # then s2 is unnecessary because s2 can be replaced by s1
     for i in range(len(sushi)):
         curr_price = sushi[i]['price']
-        if all([e['price'] % curr_price for e in sushi_cleaned]):
+        if all([curr_price % e['price'] for e in sushi_cleaned]):
             sushi_cleaned.append(sushi[i])
 
-    lcm_all_sushi = reduce(lambda x, y: lcm(x, y), sushi_cleaned)
+    lcm_all_sushi = reduce(lambda x, y: lcm(x, y), [x['price'] for x in sushi_cleaned])
     value = 0   # sum of values
     if budget > lcm_all_sushi:
         count = (budget - lcm_all_sushi) // sushi_cleaned[0]['price']   # pick best (value / price) AMAP
@@ -28,15 +31,17 @@ def solution_reduce_budget(sushi, budget):
         value += count * sushi_cleaned[0]['value']
 
     # fill cache on reduced budget
-    cache = [0] * (len(budget) + 1)
+    cache = [0] * (budget + 1)
     for i in range(1, budget + 1):
         candidates = []
         for s in sushi_cleaned:
-            if budget >= s['price']:
-                curr = s['value'] + cache[budget - s['price']]
+            if i >= s['price']:
+                curr = s['value'] + cache[i - s['price']]
                 candidates.append(curr)
 
-        cache[i] = max(candidates)
+        # find max
+        if candidates:
+            cache[i] = max(candidates)
 
     return value + cache[-1]
 
