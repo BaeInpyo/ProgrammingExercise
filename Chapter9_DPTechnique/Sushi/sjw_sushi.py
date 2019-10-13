@@ -2,9 +2,11 @@ import sys
 import os
 from fractions import gcd
 from functools import reduce
+from itertools import combinations
 
 '''
-- lcm([1, 20]) = 232792560 (somewhat big number)
+- lcm([1, 20]) = 232,792,560 (somewhat big number)
+- sum(lcm(n1, n2) for n1, n2 in [1, 200]) = 147,630,370 (still big number)
 '''
 
 def solution_reduce_budget(sushi, budget):
@@ -23,10 +25,12 @@ def solution_reduce_budget(sushi, budget):
         if all([curr_price % e['price'] for e in sushi_cleaned]):
             sushi_cleaned.append(sushi[i])
 
-    lcm_all_sushi = reduce(lambda x, y: lcm(x, y), [x['price'] for x in sushi_cleaned])
+    lcm_pairs = [lcm(x[0], x[1]) for x in combinations([e['price'] for e in sushi_cleaned], 2)]
+    sum_lcm_pairs = sum(lcm_pairs)
+
     value = 0   # sum of values
-    if budget > lcm_all_sushi:
-        count = (budget - lcm_all_sushi) // sushi_cleaned[0]['price']   # pick best (value / price) AMAP
+    if budget > sum_lcm_pairs:
+        count = (budget - sum_lcm_pairs) // sushi_cleaned[0]['price']   # pick best (value / price) AMAP
         budget -= count * sushi_cleaned[0]['price']
         value += count * sushi_cleaned[0]['value']
 
