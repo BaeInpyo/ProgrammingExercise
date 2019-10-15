@@ -1,4 +1,50 @@
 #include<stdio.h>
+#define MOD 201
+
+int N;
+int total_budget;
+int prefer[21];
+int price[21];
+int total_prefer[MOD];
+
+int solution(){
+    int result =0;
+    for(int budget=0; budget<=total_budget; budget++){
+        // budget에서 살수있는 물건들 쭉 다 사본다.
+        int max_prefer = 0;
+        for(int item_idx=0; item_idx<N; item_idx++){
+            if(budget-price[item_idx]<0){
+                continue;
+            }
+            int curr_prefer = total_prefer[(budget-price[item_idx])%MOD]+prefer[item_idx];
+            if(curr_prefer > max_prefer){
+                max_prefer = curr_prefer;
+            }
+        }
+        total_prefer[budget%MOD]=max_prefer;
+    }
+    result = total_prefer[total_budget%MOD];
+    return result;
+}
+
+int main(){
+    freopen("input.txt", "r", stdin);
+    int testcase;
+    scanf("%d", &testcase);
+    for(int tc=1; tc<=testcase; tc++){
+        
+        scanf("%d %d", &N, &total_budget);
+        total_budget /= 100;
+        for(int i=0; i<N; i++){
+            scanf("%d %d", &price[i], &prefer[i]);
+            price[i] /= 100;
+        }
+        printf("%d\n", solution());
+    }
+}
+
+/*
+#include<stdio.h>
 #define BOUNDARY 10000000
 #define INF 87654321
 #define NOT_VISITED -1
@@ -87,3 +133,4 @@ int main(){
         printf("%d\n", solution(minimum_cost_idx));
     }
 }
+*/
