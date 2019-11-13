@@ -69,10 +69,10 @@ if __name__ == '__main__':
             chosos.append(list(map(lambda x: float(x), sys.stdin.readline().rstrip().split())))
         chosos = list(map(lambda x: [getRange(pointToTheta(x[0],x[1]),x[2]),x[2]], chosos)) # chosos = [[from, to], radius]
         for idx, choso in enumerate(chosos):
-            if choso[0][0] <= 2*PI and choso[0][1] >= 2*PI:
-                firstPoint = chosos.pop(idx)
-                result = min(solution(firstPoint[0][0], firstPoint[0][1], chosos), result)
-                chosos.insert(idx, firstPoint)
+            #if choso[0][0] <= 2*PI and choso[0][1] >= 2*PI:
+            firstPoint = chosos.pop(idx)
+            result = min(solution(firstPoint[0][0], firstPoint[0][1], chosos), result)
+            chosos.insert(idx, firstPoint)
         if result > 99999:
             result = 'IMPOSSIBLE'
         print(result)
