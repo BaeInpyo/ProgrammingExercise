@@ -50,30 +50,30 @@ def solution(currFrom, currTo, chosos):
         else:
             nextTo = currTo + maxRange
             nextFrom = currFrom
-        del chosos[maxIdx]
-        return 1+solution(nextFrom, nextTo, chosos)
+        temp = chosos.pop(maxIdx)
+        ret = 1+solution(nextFrom, nextTo, chosos)
+        chosos.insert(maxIdx, temp)
+        return ret
     else:
-        return -9999  
+        return 9999999  
 
     
 if __name__ == '__main__':
-    sys.stdin = open('input.in', 'r')
+    #sys.stdin = open('input.in', 'r')
     C = int(sys.stdin.readline().rstrip())
     for _ in range(C):
         n = int(sys.stdin.readline().rstrip())
         chosos = []
+        result = 999999
         for _ in range(n):
             chosos.append(list(map(lambda x: float(x), sys.stdin.readline().rstrip().split())))
         chosos = list(map(lambda x: [getRange(pointToTheta(x[0],x[1]),x[2]),x[2]], chosos)) # chosos = [[from, to], radius]
-        maxVal = -1
-        maxIdx = -1
-        for idx, elt in enumerate(chosos):
-            if elt[1] > maxVal:
-                maxVal = elt[1]
-                maxIdx = idx
-        firstPoint = chosos.pop(maxIdx)
-        result = solution(firstPoint[0][0], firstPoint[0][1], chosos)
-        if result < 0:
+        for idx, choso in enumerate(chosos):
+            if choso[0][0] <= 2*PI and choso[0][1] >= 2*PI:
+                firstPoint = chosos.pop(idx)
+                result = min(solution(firstPoint[0][0], firstPoint[0][1], chosos), result)
+                chosos.insert(idx, firstPoint)
+        if result > 99999:
             result = 'IMPOSSIBLE'
         print(result)
 
