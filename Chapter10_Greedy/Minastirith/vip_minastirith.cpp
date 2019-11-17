@@ -1,7 +1,8 @@
 #include <iostream>
-#include <math>
+#include <vector>
+#include <cmath>
 
-#define MAX 100
+#define MAX 10
 
 using namespace std;
 
@@ -11,23 +12,24 @@ enum LOC {
   R = 2,
 };
 
-struct Point {
-  double x;
-  double y;
-  char quadrant;
+struct Checkpoint {
+  double start_degree;
+  double end_degree;
+  
+  Checkpoint(double start, double end) : start_degree(start), end_degree(end) {}
 };
 
-struct Checkpoint {
-  Point start;
-  Point center;
-  Point end;
-};
+typedef struct Checkpoint CKP;
 
 int num_tests;
 int num_checkpoints;
 double location[MAX][3]; // 0: y, 1: x, 2: r
-vector<Point> aligned_checkpoints;
-vector<Point> start_checkpoints;
+vector<CKP> aligned_checkpoints;
+double r_castle = 8.0;
+
+double distance_between_points(double x_i, double y_i, double x_j, double y_j) {
+  return sqrt( pow(x_j - x_i, 2) + pow(y_j - y_i, 2) );
+}
 
 double distance(int i, int j) {
   double x_i = location[i][X];
@@ -36,7 +38,7 @@ double distance(int i, int j) {
   double y_i = location[i][Y];
   double y_j = location[j][Y];
 
-  return sqrt( pow(x_j - x_i, 2) + pow(y_j - y_i, 2) );
+  return distance_between_points(x_i, y_i, x_j, y_j);
 }
 
 // Remove overlapped checkpoints
@@ -44,14 +46,17 @@ double distance(int i, int j) {
 void remove_overlapped() {
   bool temp_location[MAX][3];
   bool deleted[MAX] = { false };
-  for (int i = 0; i < num_checkpoints && !deleted[i]; ++i) {
-    for (int j = 0; j < num_checkpoints && i != j && !deleted[j]; ++j) {
+  for (int i = 0; i < num_checkpoints; ++i) {
+    if (deleted[i]) continue;
+    for (int j = 0; j < num_checkpoints; ++j) {
+      if (i == j || deleted[j]) continue;
+
       double r_i = location[i][R];
       double r_j = location[j][R];
       
-      if (r_i < r_j) break;
+      if (r_i < r_j) continue;
 
-      if (r_i - r_j > distance(i, j)) {
+      if (r_i - r_j >= distance(i, j)) {
         deleted[j] = true;
       }
     }
@@ -59,7 +64,6 @@ void remove_overlapped() {
   
   int temp_index = 0;
   for (int i = 0; i < num_checkpoints; ++i) {
-    if (i == temp_index) continue;
     if (!deleted[i]) {
       location[temp_index][X] = location[i][X];
       location[temp_index][Y] = location[i][Y];
@@ -71,29 +75,36 @@ void remove_overlapped() {
   num_checkpoints = temp_index;
 }
 
-auto f = [](const Point &a, const Point &b) {
-  bool result;
-  if (a.quadrant < b.quadrant) result = true;
-  else if (a.quadrant == b.quadrant) {
-    switch(a.quadrant) {
-      case 1:
-        if (a.
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-    }
-  } else result = false;
-  return result;
+double calculate_degree(double c, int quadrant) {
+  double cosine_theta = (128 - c*c) / 128.0;
+  double theta = acos(cosine_theta);
+  if (quadrant > 2) theta += M_PI;
+  return theta;
 }
 
 void align_checkpoints() {
+  for (int i = 0; i < num_checkpoints; ++i) {
+    double y = location[i][Y];
+    double x = location[i][X];
+    double r = location[i][R];
+  
+    // 1. Calculate center degree
+    double c = distance_between_points(0, r_castle, x, y);
+    double center_degree = (x >= 0) ? calculate_degree(c, 1) : calculate_degree(c, 3);
 
-  sort(aligned_checkpoints.begin(), aligned_checkpoints.end(), f);
+    // 2. Calculate start, end degree
+    double temp_degree = calculate_degree(r, 1);
+    double start_degree = center_degree - temp_degree;
+    double end_degree = center_degree + temp_degree;
+
+    aligned_checkpoints.emplace_back(CKP{start_degree, end_degree});
+  }
+
+  sort(aligned_checkpoints.begin(), aligned_checkpoints.end(), [](CKP a, CKP b) {
+    return a.start_degree <= b.start_degree;
+  });
 }
+
 
 void solution() {
   remove_overlapped();
