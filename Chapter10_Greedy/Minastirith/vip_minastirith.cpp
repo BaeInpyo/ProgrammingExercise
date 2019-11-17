@@ -140,7 +140,7 @@ int greedy_solution(int start_index) {
   }
   
   if (finished) return count;
-  return 0;
+  return 101;
 }
 
 void solution() {
@@ -154,12 +154,12 @@ void solution() {
 
   remove_overlapped();
   align_checkpoints();
-  int min_count = 100;
+  int min_count = 101;
   for (int i = 0; i < num_checkpoints; ++i) {
     int count = greedy_solution(i);
     min_count = min(count, min_count);
   }
-  if (min_count == 0) cout << "IMPOSSIBLE" << endl;
+  if (min_count == 101) cout << "IMPOSSIBLE" << endl;
   else cout << min_count << endl;
 }
 
