@@ -3,7 +3,9 @@
 #include <cmath>
 #include <algorithm>
 
-#define MAX 10
+#define MAX 100
+#define PI_1 M_PI
+#define PI_2 PI_1*2
 
 using namespace std;
 
@@ -34,9 +36,9 @@ double distance_between_points(double x_i, double y_i, double x_j, double y_j) {
 
 double distance(int i, int j) {
   double x_i = location[i][X];
-  double x_j = location[j][X];
-
   double y_i = location[i][Y];
+
+  double x_j = location[j][X];
   double y_j = location[j][Y];
 
   return distance_between_points(x_i, y_i, x_j, y_j);
@@ -79,7 +81,7 @@ void remove_overlapped() {
 double calculate_degree(double c, int quadrant) {
   double cosine_theta = (128 - c*c) / 128.0;
   double theta = acos(cosine_theta);
-  if (quadrant > 2) theta = 2*M_PI - theta;
+  if (quadrant > 2) theta = PI_2 - theta;
   return theta;
 }
 
@@ -108,7 +110,7 @@ void align_checkpoints() {
   
   for (int i = 0; i < num_checkpoints; ++i) {
     CKP ckp_i = aligned_checkpoints[i];
-    aligned_checkpoints.emplace_back(CKP{ckp_i.start_degree+2*M_PI, ckp_i.end_degree+2*M_PI});
+    aligned_checkpoints.emplace_back(CKP{ckp_i.start_degree+PI_2, ckp_i.end_degree+PI_2});
   }
 }
 
@@ -129,10 +131,12 @@ int greedy_solution(int start_index) {
       }
       ++next_index;
     }
+    if (chosen_index == next_index-1) break;
+
     chosen_index = next_index-1;
     end_degree = aligned_checkpoints[chosen_index].end_degree;
     ++count;
-    if (end_degree - first_degree >= 2*M_PI) finished = true;
+    if (end_degree - first_degree >= PI_2) finished = true;
   }
   
   if (finished) return count;
