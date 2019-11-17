@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 #define MAX 10
 
@@ -78,11 +79,12 @@ void remove_overlapped() {
 double calculate_degree(double c, int quadrant) {
   double cosine_theta = (128 - c*c) / 128.0;
   double theta = acos(cosine_theta);
-  if (quadrant > 2) theta += M_PI;
+  if (quadrant > 2) theta = 2*M_PI - theta;
   return theta;
 }
 
 void align_checkpoints() {
+  aligned_checkpoints.clear();
   for (int i = 0; i < num_checkpoints; ++i) {
     double y = location[i][Y];
     double x = location[i][X];
@@ -103,12 +105,58 @@ void align_checkpoints() {
   sort(aligned_checkpoints.begin(), aligned_checkpoints.end(), [](CKP a, CKP b) {
     return a.start_degree <= b.start_degree;
   });
+  
+  for (int i = 0; i < num_checkpoints; ++i) {
+    CKP ckp_i = aligned_checkpoints[i];
+    aligned_checkpoints.emplace_back(CKP{ckp_i.start_degree+2*M_PI, ckp_i.end_degree+2*M_PI});
+  }
 }
 
+int greedy_solution(int start_index) {
+  bool finished = false;
+  CKP start_ckp = aligned_checkpoints[start_index];
+  double first_degree = start_ckp.start_degree;
+  double end_degree = start_ckp.end_degree;
+
+  int count = 1;
+  int chosen_index = start_index;
+  while (!finished && chosen_index < start_index + num_checkpoints-1) {
+    int next_index = chosen_index+1;
+    while (next_index < start_index + num_checkpoints) {
+      CKP next_ckp = aligned_checkpoints[next_index];
+      if (next_ckp.start_degree > end_degree) {
+        break;
+      }
+      ++next_index;
+    }
+    chosen_index = next_index-1;
+    end_degree = aligned_checkpoints[chosen_index].end_degree;
+    ++count;
+    if (end_degree - first_degree >= 2*M_PI) finished = true;
+  }
+  
+  if (finished) return count;
+  return 0;
+}
 
 void solution() {
+  // Base case
+  for (int i = 0; i < num_checkpoints; ++i) {
+    if (location[i][R] >= r_castle*2) {
+      cout << "1" << endl;
+      return;
+    }
+  }
+
   remove_overlapped();
   align_checkpoints();
+  int min_count = 100;
+  for (int i = 0; i < num_checkpoints; ++i) {
+    int count = greedy_solution(i);
+    min_count = min(count, min_count);
+  }
+  if (min_count == 0) cout << "IMPOSSIBLE" << endl;
+  else cout << min_count << endl;
 }
 
 int main() {
@@ -118,9 +166,9 @@ int main() {
   while (--num_tests >= 0) {
     cin >> num_checkpoints;
     for (int i = 0; i < num_checkpoints; ++i) {
-      cin >> location[i][LOC::Y];
-      cin >> location[i][LOC::X];
-      cin >> location[i][LOC::R];
+      cin >> location[i][Y];
+      cin >> location[i][X];
+      cin >> location[i][R];
     }
 
     solution();
