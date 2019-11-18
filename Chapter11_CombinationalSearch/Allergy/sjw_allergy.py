@@ -20,7 +20,7 @@ question
 
 N, M = None, None
 MINIMAL, FOOD_SET, PEOPLE_SET = None, None, None
-FOOD_TO_PEOPLE = None       # key: food number, value: people
+FOOD_TO_PEOPLE = None       # key: food number, value: people number
 
 
 # return if further calculation needed or not
@@ -34,7 +34,9 @@ def parse_input():
     people_to_number = { people: index for (index, people) in enumerate(list(people_set)) } # key: people name, value: number
     food_to_people = defaultdict(set) # key: food, value: set of people
     for idx in range(M):
-        food_to_people[idx] = set(sys.stdin.readline().strip().split()[1:])
+        curr = sys.stdin.readline().strip().split()[1:]
+        curr = [people_to_number[people] for people in curr]
+        food_to_people[idx] = curr
 
     global MINIMAL, FOOD_SET, PEOPLE_SET, FOOD_TO_PEOPLE
     MINIMAL = M
@@ -44,35 +46,36 @@ def parse_input():
 
     return
 
-def recur(food_set, people_check, start_idx):
+def recur(food_count, people_check, start_idx):
     global MINIMAL
+
+    # MINIMAL is already found
+    if MINIMAL <= food_count:
+        return
+
     # if all people are available, return
-    if all(people_check.values()):
-        MINIMAL = min(len(food_set), MINIMAL)
+    if people_check == (1 << N) - 1:
+        MINIMAL = min(food_count, MINIMAL)
         return
 
     # add food
-    for food_idx in FOOD_SET:
-        if food_idx < start_idx:
-            continue
-
+    for food_idx in range(start_idx, M):
         # if current food is useless, continue
-        useful = [people for people in FOOD_TO_PEOPLE[food_idx] if people_check[people] == False]
-        if not useful:
+        useful = sum([pow(2, number) for number in FOOD_TO_PEOPLE[food_idx]])
+        useful = useful & (people_check ^ ((1 << N) - 1))
+        if useful == 0:
             continue
 
         # set parameters
-        food_set.add(food_idx)
-        for people in useful:
-            people_check[people] = True
+        food_count += 1
+        people_check = people_check | useful
 
         # go deeper
-        recur(food_set, people_check, food_idx + 1)
+        recur(food_count, people_check, food_idx + 1)
 
         # unset parameters
-        food_set.remove(food_idx)
-        for people in useful:
-            people_check[people] = False
+        food_count -= 1
+        people_check = people_check & (useful ^ ((1 << N) - 1))
 
     return
 
@@ -83,10 +86,12 @@ if __name__ == '__main__':
         parse_input()
 
         # start food_set with empty and add food (bottom up)
-        food_set = set()
+        food_count = 0
 
-        # set boolean array for people check
-        people_check = { people: False for people in PEOPLE_SET }
+        # use number as list of boolean
+        people_check = 0
 
-        recur(food_set, people_check, 0)
+        start_idx = 0
+
+        recur(food_count, people_check, start_idx)
         print(MINIMAL)
