@@ -36,6 +36,7 @@ def parse_input():
     for idx in range(M):
         curr = sys.stdin.readline().strip().split()[1:]
         curr = [people_to_number[people] for people in curr]
+        curr = sum([ pow(2, number) for number in curr ])   # convert to bitmask
         food_to_people[idx] = curr
 
     global MINIMAL, FOOD_SET, PEOPLE_SET, FOOD_TO_PEOPLE
@@ -61,7 +62,7 @@ def recur(food_count, people_check, start_idx):
     # add food
     for food_idx in range(start_idx, M):
         # if current food is useless, continue
-        useful = sum([pow(2, number) for number in FOOD_TO_PEOPLE[food_idx]])
+        useful = FOOD_TO_PEOPLE[food_idx]
         useful = useful & (people_check ^ ((1 << N) - 1))
         if useful == 0:
             continue
