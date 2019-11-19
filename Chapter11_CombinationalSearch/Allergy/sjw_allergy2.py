@@ -51,6 +51,10 @@ if __name__ == '__main__':
             for p in people:
                 PEOPLE_TO_FOOD[p].append(food)
 
+        # we will search food first that can server many people
+        for people in PEOPLE_TO_FOOD:
+            PEOPLE_TO_FOOD[people].sort(key = lambda x: len(FOOD_TO_PEOPLE[food]))
+
         SATISFIED = { p: 0 for p in PEOPLE }   # check if each person can eat food
         MINIMAL = M
         recur(0)
