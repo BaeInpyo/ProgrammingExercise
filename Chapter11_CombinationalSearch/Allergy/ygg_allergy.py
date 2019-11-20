@@ -19,11 +19,16 @@ def getTMinCount(friends, foods, chosen):
     numFriends = len(friends)
     numChosen = len(chosen)
     leftFriends = numFriends - numChosen
-    for food in foods:
-        if leftFriends <= 0:
-            break
-        leftFriends -= len(food)
-        count += 1
+    foodsCopy = foods[:]
+
+    while leftFriends > 0:
+        for greedyFoodIdx in findMaxFood(foodsCopy, chosen):
+            if leftFriends <= 0:
+                break
+            food = foodsCopy.pop(greedyFoodIdx)
+            leftFriends -= len(food)
+            count += 1
+
     return count
 
 
@@ -47,7 +52,7 @@ def solution(friends, foods, chosen, currCount):
     
 
 if __name__ == '__main__':
-    sys.stdin = open('input.in', 'r')
+    #sys.stdin = open('input.in', 'r')
     C = int(sys.stdin.readline().rstrip())
     for _ in range(C):
         n, m = list(map(int,sys.stdin.readline().rstrip().split()))
