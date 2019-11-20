@@ -1,5 +1,7 @@
 import sys
 
+minCount = 0
+
 def findMaxFood(foods, chosen):
     retIdx = []
     maxVal = 0
@@ -12,21 +14,40 @@ def findMaxFood(foods, chosen):
             retIdx.append(idx)
     return retIdx
 
+def getTMinCount(friends, foods, chosen):
+    count = 0
+    numFriends = len(friends)
+    numChosen = len(chosen)
+    leftFriends = numFriends - numChosen
+    for food in foods:
+        if leftFriends <= 0:
+            break
+        leftFriends -= len(food)
+        count += 1
+    return count
 
-def solution(friends, foods, chosen):
+
+def solution(friends, foods, chosen, currCount):
+    global minCount
+
     if len(chosen) == len(friends):
-        return 0
-    result = 999
-    maxFoods = findMaxFood(foods, chosen)
-    for maxFoodIdx in maxFoods:
-        maxFood = foods.pop(maxFoodIdx)
-        nextChosen = chosen | set(maxFood)
-        result = min(result, 1+solution(friends, foods, nextChosen))
-        foods.insert(maxFoodIdx, maxFood)
-    return result
+        minCount = min(currCount, minCount)
+        return
+
+    if getTMinCount(friends, foods, chosen) + currCount >= minCount:
+        return
+
+    for foodIdx in range(len(foods)):
+        food = foods.pop(foodIdx)
+        nextChosen = chosen | set(food)
+        solution(friends, foods, nextChosen, currCount+1)
+        foods.insert(foodIdx, food)
+
+    return
     
+
 if __name__ == '__main__':
-    #sys.stdin = open('input.in', 'r')
+    sys.stdin = open('input.in', 'r')
     C = int(sys.stdin.readline().rstrip())
     for _ in range(C):
         n, m = list(map(int,sys.stdin.readline().rstrip().split()))
@@ -34,5 +55,16 @@ if __name__ == '__main__':
         foods = []
         for _ in range(m):
             foods.append(sys.stdin.readline().rstrip().split()[1:])
-        print(solution(friends, foods, set([])))
 
+        minCount = 999
+        # pre-processing
+        newFoods = []
+        for idx in range(len(foods)):
+            food = foods.pop(idx)
+            if len(list(filter(lambda x: len(set(food)-set(x)) == 0, foods))) == 0:
+                newFoods.append(food)
+            foods.insert(idx, food)
+        newFoods.sort(key=lambda x: len(x), reverse=True)
+
+        solution(friends, newFoods, set([]), 0)
+        print(minCount)
