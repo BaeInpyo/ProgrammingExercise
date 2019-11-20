@@ -1,0 +1,110 @@
+#include<iostream>
+#include<map>
+#include<string>
+
+using namespace std;
+
+int n_man, n_food;
+map<string, int> name_idx;
+bool can_eat[50][50];
+
+long long int all_eat;
+
+
+bool combination(int food_idx, int r, long long int curr_state, int remain_man, int remain_food){ //nCr, (n_food, r)
+    // food_idx를 선택 한 경우,
+    // 이거 분기를 타야하는데, 만약에 현재에서 
+    // 성공한 경우가 있으면 그냥 쭉 끝내면 된다.
+    
+    // 남은 사람 숫자가 푸드 고를수 있는 개수보다 적으면 끝내자.
+    if(remain_food>=r && remain_man<=r){
+        return true;
+    }
+
+    if(food_idx>=n_food){
+        return false;
+    }
+    if(r<=0){
+        if(curr_state==all_eat){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    int next_remain_man=remain_man;
+    long long int next_state=curr_state;
+    bool isEnd=false;
+    
+    for(int i=0; i<n_man; i++){
+        if(can_eat[food_idx][i]==true){
+            if(curr_state && (1<<i)){
+                next_remain_man--;
+            }
+            next_state=next_state | (1<<i);
+        }
+    }
+    if(next_state==all_eat){
+        return true;
+    }
+
+    isEnd = isEnd || combination(food_idx+1, r-1, next_state, next_remain_man, remain_food-1);
+    if(isEnd){
+        return true;
+    }
+    next_state=curr_state;
+    next_remain_man = remain_man;
+    // food_idx를 선택 안 한 경우
+    isEnd = isEnd || combination(food_idx+1, r, next_state, next_remain_man, remain_food-1);
+    return isEnd;
+}
+
+int solution(){
+    int minimum = n_food; // max is n_food
+
+    for(int i=1; i<n_food; i++){
+        bool success = combination(0, i, 0, n_man, n_food);
+        if(success){
+            minimum=i;
+            break;
+        }
+    }
+    return minimum;
+}
+void init(){
+    for(int y=0; y<n_food; y++){
+        for(int x=0; x<n_man; x++){
+            can_eat[y][x]=false;
+        }
+    }
+}
+
+int main(){
+    //freopen("input.txt","r",stdin);
+    int testcase;
+    cin >> testcase;
+
+    for(int tc=1; tc<=testcase; tc++){
+        init();
+        cin >> n_man; 
+        cin >> n_food;
+        all_eat = (1<<n_man)-1;
+        
+        string name;
+        for(int i=0; i<n_man; i++){
+            cin >> name;
+            name_idx[name] = i;
+        }
+        for(int food_idx=0; food_idx<n_food; food_idx++){
+            int n_name;
+            cin >> n_name;
+            for(int i=0; i<n_name; i++){
+                cin >> name;
+                int nameToIdx=name_idx[name];
+                can_eat[food_idx][nameToIdx]=true;
+            }
+        }
+        cout << solution() << endl;
+    }
+}
