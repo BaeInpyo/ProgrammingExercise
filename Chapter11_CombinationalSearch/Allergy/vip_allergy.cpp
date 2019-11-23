@@ -10,6 +10,7 @@ using namespace std;
 int num_tests;
 int num_friends;
 int num_dishes;
+int min_count;
 unordered_map<string, int> friend_index_map;
 long long int favorites[MAX];
 long long int everyone;
@@ -65,31 +66,34 @@ void sort_dishes() {
 void preprocess() {
   remove_duplicates();
   sort_dishes();
+  min_count = 51;
 }
 
-int get_min_dishes(int start) {
-  if (everyone == 0) return 0;
-
-  int count = 0;
-  int min_count = 51;
-  for (int i = start; i < num_dishes; ++i) {
-    long long int satisfied = favorites[i] & everyone;
-    if (!satisfied) continue;
-    everyone ^= satisfied;
-    count = 1 + get_min_dishes(i+1);
+void get_min_dishes(int start, int count) {
+  if (everyone == 0) {
     if (count < min_count) {
       min_count = count;
     }
+    return;
+  }
+  if (count >= min_count) return;
+
+  for (int i = start; i < num_dishes; ++i) {
+    long long int satisfied = favorites[i] & everyone;
+    if (!satisfied) continue;
+    int next_count = count + 1;
+    everyone ^= satisfied;
+    get_min_dishes(i+1, next_count);
     everyone |= satisfied;
   }
 
-  return min_count;
+  return;
 }
 
 void solution() {
   preprocess();
-  int count = get_min_dishes(0);
-  cout << count << endl;
+  get_min_dishes(0, 0);
+  cout << min_count << endl;
 }
 
 int main() {
