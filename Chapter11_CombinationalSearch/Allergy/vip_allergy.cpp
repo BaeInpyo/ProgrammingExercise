@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <unordered_map>
 
 #define MAX 50
@@ -34,8 +36,35 @@ void remove_duplicates() {
   num_dishes = temp_index;
 }
 
+void sort_dishes() {
+  vector<long long int> temp(num_dishes);
+
+  for (int i = 0; i < num_dishes; ++i) {
+    temp.push_back(favorites[i]);
+  }
+  sort(temp.begin(), temp.end(),
+        [](long long int first, long long int second) {
+          int num_first = 0, num_second = 0;
+          while (first > 0) {
+            if (first & 0x1) ++num_first;
+            first = (first >> 1);
+          }
+          while (second > 0) {
+            if (second & 0x1) ++num_second;
+            second = (second >> 1);
+          }
+          return num_first > num_second;
+        }
+      );
+  
+  for (int i = 0; i < num_dishes; ++i) {
+    favorites[i] = temp[i];
+  }
+}
+
 void preprocess() {
   remove_duplicates();
+  sort_dishes();
 }
 
 int get_min_dishes(int start) {
