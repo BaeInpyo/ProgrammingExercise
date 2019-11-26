@@ -2,52 +2,22 @@ import sys
 
 minCount = 0
 
-def findMaxFood(foods, chosen):
-    retIdx = []
-    maxVal = 0
-    for idx, food in enumerate(foods):
-        diffFoodLen = len(set(food)-chosen)
-        if maxVal < diffFoodLen:
-            maxVal = diffFoodLen
-            retIdx = [idx]
-        elif maxVal == diffFoodLen and maxVal != 0:
-            retIdx.append(idx)
-    return retIdx
-
-def getTMinCount(friends, foods, chosen):
-    count = 0
-    numFriends = len(friends)
-    numChosen = len(chosen)
-    leftFriends = numFriends - numChosen
-    foodsCopy = foods[:]
-
-    while leftFriends > 0:
-        for greedyFoodIdx in findMaxFood(foodsCopy, chosen):
-            if leftFriends <= 0:
-                break
-            food = foodsCopy.pop(greedyFoodIdx)
-            leftFriends -= len(food)
-            count += 1
-
-    return count
-
-
-def solution(friends, foods, chosen, currCount):
+def solution(friendsDict, hungryFriends, foods, currCount):
     global minCount
 
-    if len(chosen) == len(friends):
-        minCount = min(currCount, minCount)
+    if currCount >= minCount:
         return
 
-    if getTMinCount(friends, foods, chosen) + currCount >= minCount:
+    if len(hungryFriends) == 0:
+        minCount = currCount
         return
 
-    for foodIdx in range(len(foods)):
-        food = foods.pop(foodIdx)
-        nextChosen = chosen | set(food)
-        solution(friends, foods, nextChosen, currCount+1)
-        foods.insert(foodIdx, food)
+    hungryFriend = hungryFriends.pop()
 
+    for foodIdx in friendsDict[hungryFriend]:
+        food = foods[foodIdx]
+        newHungryFriends = hungryFriends - set(food)
+        solution(friendsDict, newHungryFriends, foods, currCount+1)
     return
     
 
@@ -56,13 +26,13 @@ if __name__ == '__main__':
     C = int(sys.stdin.readline().rstrip())
     for _ in range(C):
         n, m = list(map(int,sys.stdin.readline().rstrip().split()))
-        friends = sys.stdin.readline().rstrip().split()
+        _ = sys.stdin.readline()
         foods = []
         for _ in range(m):
             foods.append(sys.stdin.readline().rstrip().split()[1:])
 
         minCount = 999
-        # pre-processing
+
         newFoods = []
         for idx in range(len(foods)):
             food = foods.pop(idx)
@@ -71,5 +41,11 @@ if __name__ == '__main__':
             foods.insert(idx, food)
         newFoods.sort(key=lambda x: len(x), reverse=True)
 
-        solution(friends, newFoods, set([]), 0)
+        friendsDict = {}
+        for idx, food in enumerate(newFoods):
+            for person in food:
+                friendsDict[person] = friendsDict.get(person, []) + [idx]
+
+        #print(friendsDict.keys())
+        solution(friendsDict, set(friendsDict.keys()), newFoods, 0)
         print(minCount)
