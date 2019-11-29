@@ -3,22 +3,39 @@ from itertools import combinations
 from collections import defaultdict
 
 
-COMB_DICT = defaultdict(list)  # key: (sum, count), value: list of combinations
-BLACK, WHITE = 0, 1
-
 # freopen equivalent
 abs_path = os.path.abspath(os.path.dirname(__file__))
 sys.stdin = open(os.path.join(abs_path, 'input.txt'), 'r')
 
+
 '''
-board를 좌상단에서 우하단으로 돌면서 white block을 채운다.
-white block에는 1-9까지가 가능하지만, 좌측 힌트와 상단 힌트를 고려하여 실제로는 더 적은 갯수의 숫자가 가능하다.
+Strategy
+Search from (0, 0) to (N-1, N-1) with giving priority to horizontal direction.
+At each white cell (y, x), find possible numbers to place and call recursive function starts at next of (y, x).
+
+To find possible numbers to locate at (y, x), we can consider
+1. hints that can affect (y, x), especially, possible combinations of numbers to satisfy hint
+2. picked numbers before (y, x)
+
+For example, when we find possible numbers at (2, 2) we need to look hints in (0, 2) whose sum is 30 and (2, 0) whose sume is 17.
+Hint 17 can be made with 2 numbers: (8, 9)
+Hint 30 can be made with 4 numbers: (6, 7, 8, 9)
+This is not good example because only 9 is possible at (2, 2).
+But anyway, in general cases, you also need to consider numbers in (2, 1) and (1, 2) to avoid same number in single hint.
+
+NOTES
+- COMB_DICT is a dictionary that is pre-calculated to find possible combinations of numbers when (count, sum) is given.
+- I used hint_dict to represent hint well
 '''
 
 
-"""
-COMB_DICT[(sum, count)] = list of possible combinations of numbers in [1, ... 9]
-"""
+COMB_DICT = defaultdict(list)  # key: (sum, count), value: list of combinations
+BLACK, WHITE = 0, 1
+
+
+'''
+Initialize COMB_DICT. This function is executed only once.
+'''
 def init_combdict():
     global COMB_DICT
     numbers = range(1, 10)
@@ -26,19 +43,26 @@ def init_combdict():
         combs = combinations(numbers, count)
         for comb in combs:
             _sum = sum(comb)
-            COMB_DICT[(_sum, count)].append(set(comb))
+            COMB_DICT[(count, _sum)].append(set(comb))
 
-# return next position of (y, x)
+'''
+Return next position of (y, x)
+'''
 def get_next_point(y, x, N):
     next_x = (x + 1) % N
     next_y = y + (x + 1) // N
     return next_y, next_x
 
 
-"""
+'''
 Return list of numbers that can be placed in (y, x)
-This is determined using hints dependent on (y, x)
-"""
+As stated in Strategy at the top of this file, this function will check both (count, sum) of dependent hint and picked numbers previously
+:param board:               board to fill
+:param coordinate_to_hint:  dictionary whose key is (y, x) and value is list of hints that can affect (y, x)
+:param y:                   coordinate of y
+:param x:                   coordinate of x
+:return:                    set of numbers that can be placed in (y, x)
+'''
 def get_candidates(board, coordinate_to_hint, y, x):
     result = set(range(1, 10))
 
@@ -47,9 +71,10 @@ def get_candidates(board, coordinate_to_hint, y, x):
         _result = set()
         for comb in hint['possible_sum_combinations']:
             """
-            comb must contain picked
-            e.g, in case of hint in (0, 6) whose count is 2 and sum is 12
-            if we select 9 first, then we only can use 3 as second
+            Comb must be a superset of picked numbers.
+            E.g, in case of hint in (0, 6) whose count is 2 and sum is 12,
+            (3, 9), (4, 8), (5, 7) is possible combination.
+            If we select 9 first, then we only can use 3 as second number.
             """
             if set.issubset(hint['picked'], comb):
                 _result.update(comb - hint['picked'])
@@ -59,10 +84,18 @@ def get_candidates(board, coordinate_to_hint, y, x):
     return result
 
 
-# return true if success to fill all white cells
+'''
+Recursive function to search. Return true if answer is found.
+:param board:               board to fill
+:param coordinate_to_hint:  dictionary whose key is (y, x) and value is list of hints that can affect (y, x)
+:param curr_y:              coordinate of y
+:param curr_x:              coordinate of x
+:return:                    boolean value whether answer is found
+'''
 def recur(board, coordinate_to_hint, curr_y, curr_x):
     N = len(board)
-    # arrive end of block
+
+    # arrive at the end of block
     if curr_y == N:
         return True
 
@@ -96,9 +129,6 @@ def recur(board, coordinate_to_hint, curr_y, curr_x):
     return False
 
 
-"""
-main function
-"""
 def solution(board, hint):
     coordinate_to_hint = preprocess(board, hint)
     _ = recur(board, coordinate_to_hint, 0, 0)  # _ must be true because answer always exists
@@ -108,9 +138,9 @@ def solution(board, hint):
     return
 
 
-"""
+'''
 1. Convert hint to hint_dict
-2. Make dictionary whose key is (y, x) of white block and value is list of hints dependent
+2. Make dictionary whose key is (y, x) of white cell and value is list of hints that can affect (y, )
 
 hint_dict = {
   'y': y
@@ -119,13 +149,13 @@ hint_dict = {
   'sum': sum
   'count': number of white points to cover
   'possible_sum_combinations': list of set which represents combination of nubmers
-  'picked': set of picked numbers
+  'picked': set of picked numbers previously
 }
 
 :param board:   2d list which represents board
 :param hint:    (y, x, direction, sum) of input hint
 :return:        coordinate_to_hint dict
-"""
+'''
 def preprocess(board, hint):
     N = len(board)
     coordinate_to_hint = defaultdict(list)
@@ -153,8 +183,9 @@ def preprocess(board, hint):
 
             curr_y, curr_x = curr_y + dy, curr_x + dx
 
-        hint_dict['count'] = len(white_points)
-        hint_dict['possible_sum_combinations'] = COMB_DICT[(_sum, len(white_points))]
+        count = len(white_points)
+        hint_dict['count'] = count
+        hint_dict['possible_sum_combinations'] = COMB_DICT[(count, _sum)]
 
         for (y, x) in white_points:
             coordinate_to_hint[(y, x)].append(hint_dict)
@@ -162,7 +193,10 @@ def preprocess(board, hint):
     return coordinate_to_hint
 
 
-# return board, hint
+'''
+Function to read input
+:return:    (board, hint)
+'''
 def read_input():
     N = int(sys.stdin.readline().strip())
     board = []
