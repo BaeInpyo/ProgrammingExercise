@@ -22,17 +22,14 @@ struct Hint {
 };
 
 vector<pair<int, int>> pos_vec;
-vector<Hint> hints_vec;
 Hint *hhint_of_pos[N][N];
 Hint *vhint_of_pos[N][N];
 
 int get_minimum_sum(int count) {
-  if (count == 1) return 1;
-  return count * (count-1) / 2;
+  return count * (count+1) / 2;
 }
 
 int get_maximum_sum(int count) {
-  if (count == 1) return 9;
   return (9-count) * count + get_minimum_sum(count);
 }
 
@@ -79,9 +76,9 @@ void initialize() {
     for (int x = 1; x < board_size; ++x) {
       if (!board[y][x]) {
         if (count) {
-          hints_vec.emplace_back(hints[0][y][x_hint], count);
+          Hint *cur_hint = new Hint(hints[0][y][x_hint], count);
           for (int x_pos = x_hint + 1; x_pos < x; ++x_pos) {
-            hhint_of_pos[y][x_pos] = &hints_vec.back();
+            hhint_of_pos[y][x_pos] = cur_hint;
           }
           count = 0;
         }
@@ -91,9 +88,9 @@ void initialize() {
       }
     }
     if (count) {
-      hints_vec.emplace_back(hints[0][y][x_hint], count);
+      Hint *cur_hint = new Hint(hints[0][y][x_hint], count);
       for (int x_pos = x_hint + 1; x_pos < board_size; ++x_pos) {
-        hhint_of_pos[y][x_pos] = &hints_vec.back();
+        hhint_of_pos[y][x_pos] = cur_hint;
       }
     }
   }
@@ -104,9 +101,9 @@ void initialize() {
     for (int y = 0; y < board_size; ++y) {
       if (!board[y][x]) {
         if (count) {
-          hints_vec.emplace_back(hints[0][y_hint][x], count);
+          Hint *cur_hint = new Hint(hints[1][y_hint][x], count);
           for (int y_pos = y_hint + 1; y_pos < y; ++y_pos) {
-            vhint_of_pos[y_pos][x] = &hints_vec.back();
+            vhint_of_pos[y_pos][x] = cur_hint;
           }
           count = 0;
         }
@@ -116,9 +113,9 @@ void initialize() {
       }
     }
     if (count) {
-      hints_vec.emplace_back(hints[1][y_hint][x], count);
+      Hint *cur_hint = new Hint(hints[1][y_hint][x], count);
       for (int y_pos = y_hint + 1; y_pos < board_size; ++y_pos) {
-        vhint_of_pos[y_pos][x] = &hints_vec.back();
+        vhint_of_pos[y_pos][x] = cur_hint;
       }
     }
   }
@@ -126,7 +123,6 @@ void initialize() {
 
 void preprocess() {
   pos_vec.clear();
-  hints_vec.clear();
   initialize();
 }
 
