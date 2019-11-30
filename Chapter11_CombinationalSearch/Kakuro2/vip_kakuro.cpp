@@ -25,13 +25,9 @@ vector<pair<int, int>> pos_vec;
 Hint *hhint_of_pos[N][N];
 Hint *vhint_of_pos[N][N];
 
-int get_minimum_sum(int count) {
-  return count * (count+1) / 2;
-}
+int get_minimum_sum(int count) { return count * (count+1) / 2; }
 
-int get_maximum_sum(int count) {
-  return (9-count) * count + get_minimum_sum(count);
-}
+int get_maximum_sum(int count) { return (9-count) * count + get_minimum_sum(count); }
 
 int get_min_number(int sum, int count) {
   if (count == 1) {
@@ -165,11 +161,11 @@ bool kakuro(int index) {
   Hint *h_hint = hhint_of_pos[y][x];
   Hint *v_hint = vhint_of_pos[y][x];
 
-  int &h_sum = h_hint->sum;
-  int &h_count = h_hint->count;
+  int h_sum = h_hint->sum;
+  int h_count = h_hint->count;
 
-  int &v_sum = v_hint->sum;
-  int &v_count = v_hint->count;
+  int v_sum = v_hint->sum;
+  int v_count = v_hint->count;
 
   int min_num_for_h = get_min_number(h_sum, h_count);
   if (!min_num_for_h) return false;
@@ -177,7 +173,7 @@ bool kakuro(int index) {
   if (!min_num_for_v) return false;
   int max_num_for_h = get_max_number(h_sum, h_count);
   if (!max_num_for_h) return false;
-  int max_num_for_v = get_max_number(h_sum, h_count);
+  int max_num_for_v = get_max_number(v_sum, v_count);
   if (!max_num_for_v) return false;
 
   int candidate = max(min_num_for_h, min_num_for_v);
@@ -213,6 +209,7 @@ int main() {
   cin.sync_with_stdio(false);
 
   cin >> num_tests;
+
   while (--num_tests >= 0) {
     cin >> board_size;
 
