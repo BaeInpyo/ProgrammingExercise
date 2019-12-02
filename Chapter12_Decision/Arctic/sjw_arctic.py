@@ -11,32 +11,33 @@ def canCommunicate(points, radius):
         x2, y2 = p2
         return math.sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
 
-    remained = points.copy()
-    selected = set()
-    selected.add(remained.pop())
-    while remained:
+    def reachable(remained, selected):
         for p1 in remained:
             for p2 in selected:
                 if distance(p1, p2) <= radius:
-                    remained.remove(p1)
-                    selected.add(p1)
-                    break
+                    return p1
 
-            # end for-loop without break
-            else:
-                continue
-            # end for-loop with break
-            break
+        return None
 
-        # no points in remained can communicate with points in selected
+    remained = points.copy()
+    selected = set()
+    selected.add(remained.pop())
+
+    while remained:
+        point = reachable(remained, selected)
+        if point:
+            remained.remove(point)
+            selected.add(point)
         else:
             break
 
     return len(remained) == 0
 
+    return len(remained) == 0
+
 def solution(points):
     low, high = 0, 1000 * math.sqrt(2)
-    for _ in range(30):
+    for _ in range(20):
         mid = (low + high) / 2
         if canCommunicate(points, mid):
             high = mid
