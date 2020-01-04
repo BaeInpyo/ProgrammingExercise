@@ -1,6 +1,4 @@
 import sys, os
-import math
-import bisect
 
 # freopen equivalent
 abs_path = os.path.abspath(os.path.dirname(__file__))
