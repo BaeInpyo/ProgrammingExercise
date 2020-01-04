@@ -3,20 +3,26 @@
 using namespace std;
 
 int num_tests;
-int n, m;
+long long int n, m;
 
 const int limit = 2000000000;
 
 void solution() {
   int curr_ratio = m * 100 / n;
-  int next_n = n;
-  int next_m = m;
+  long long int next_n = n;
+  long long int next_m = m;
   bool found = false;
+
+  if (curr_ratio >= 99) {
+    cout << -1 << endl;
+    return;
+  }
+
   for (int i = 0; i < limit; ++i) {
     next_n += 1;
     next_m += 1;
     int next_ratio = next_m * 100 / next_n;
-    if (curr_ratio == next_ratio + 1) {
+    if (curr_ratio + 1 == next_ratio) {
       found = true;
       break;
     }
