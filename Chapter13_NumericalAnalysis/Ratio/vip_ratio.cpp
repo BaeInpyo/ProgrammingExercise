@@ -1,36 +1,38 @@
 #include <iostream>
 
+#define LIMIT 2000000000
+
 using namespace std;
 
 int num_tests;
 long long int n, m;
 
-const int limit = 2000000000;
 
 void solution() {
-  int curr_ratio = m * 100 / n;
-  long long int next_n = n;
-  long long int next_m = m;
-  bool found = false;
+  int target_ratio = m * 100 / n + 1;
 
-  if (curr_ratio >= 99) {
+  int hi = LIMIT;
+  int lo = 1;
+  double ratio = (m + hi) * 100 / (double)(n + hi);
+  if (ratio < target_ratio) {
     cout << -1 << endl;
     return;
   }
 
-  for (int i = 0; i < limit; ++i) {
-    next_n += 1;
-    next_m += 1;
-    int next_ratio = next_m * 100 / next_n;
-    if (curr_ratio + 1 == next_ratio) {
-      found = true;
-      break;
+  while (hi - lo > 1) {
+    int mid = (lo + hi) / 2;  
+    ratio = (m + mid) * 100 / (double)(n + mid);
+    if (ratio > target_ratio) {
+      hi = mid;
+    } else {
+      lo = mid;
     }
   }
-  if (found) { 
-    cout << next_n - n << endl;
+
+  if (ratio >= target_ratio) {
+    cout << lo << endl;
   } else {
-    cout << -1 << endl;
+    cout << hi << endl;
   }
 }
 
