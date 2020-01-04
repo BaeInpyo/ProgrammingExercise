@@ -12,8 +12,8 @@ void solution() {
   int target_ratio = m * 100 / n + 1;
 
   int hi = LIMIT;
-  int lo = 1;
-  double ratio = (m + hi) * 100 / (double)(n + hi);
+  int lo = 0;
+  int ratio = (m + hi) * 100 / (n + hi);
   if (ratio < target_ratio) {
     cout << -1 << endl;
     return;
@@ -21,19 +21,15 @@ void solution() {
 
   while (hi - lo > 1) {
     int mid = (lo + hi) / 2;  
-    ratio = (m + mid) * 100 / (double)(n + mid);
-    if (ratio > target_ratio) {
+    ratio = (m + mid) * 100 / (n + mid);
+    if (ratio >= target_ratio) {
       hi = mid;
     } else {
       lo = mid;
     }
   }
 
-  if (ratio >= target_ratio) {
-    cout << lo << endl;
-  } else {
-    cout << hi << endl;
-  }
+  cout << hi << endl;
 }
 
 int main() {
