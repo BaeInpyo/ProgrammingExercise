@@ -5,7 +5,7 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 sys.stdin = open(os.path.join(abs_path, "input.txt"), "r")
 
 
-def solution(n, k, r, c):
+def solution_nsquare(n, k, r, c):
     sum_r, sum_c = 0, 0
     selected_index = set()
     for _ in range(k):
@@ -35,6 +35,29 @@ def solution(n, k, r, c):
     return answer
 
 
+def solution_nlogn(n, k, r, c):
+    # return if rank is possible with given (n, k, r, c)
+    def is_possible(rank):
+        candidates = [rank * ci - ri for (ci, ri) in zip(c, r)]
+        candidates.sort(reverse=True)
+        if sum(candidates[:k]) >= 0:
+            return True
+        else:
+            return False
+
+    start, end = 0, 1
+
+    # 2^35 > 10^10, TODO: whiy 34 fails?
+    for _ in range(35):
+        mid = (start + end) / 2
+        if is_possible(mid):
+            end = mid
+        else:
+            start = mid
+
+    return round(end, 10)
+
+
 if __name__ == '__main__':
     T = int(sys.stdin.readline().strip())
     answers = []
@@ -43,7 +66,9 @@ if __name__ == '__main__':
         line = [int(x) for x in sys.stdin.readline().strip().split()]
         r = [x for (i, x) in enumerate(line) if i % 2 == 0]
         c = [x for (i, x) in enumerate(line) if i % 2 == 1]
-        answers.append(solution(n, k, r, c))
+        answers.append(solution_nlogn(n, k, r, c))
 
-    for answer in answers:
-        print(answer)
+    answers = [str(x) for x in answers]
+    answer = "\n".join(answers)
+    sys.stdout.write(answer)
+    sys.stdout.flush()
