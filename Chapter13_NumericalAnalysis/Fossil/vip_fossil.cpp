@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iomanip>
 
+//#define DEBUG
 #define MAX 100
 
 using namespace std;
@@ -38,7 +39,7 @@ bool upper_b;
 
 pair<double, double> get_A_ys(double input_x) {
   int index = min_A_x_index;
-  double lo_y = -1; double hi_y = -1;
+  double lo_y = min_A_y; double hi_y = max_A_y;
   double x0 = A[index].x; double y0 = A[index].y;
 
   // A Below
@@ -47,24 +48,26 @@ pair<double, double> get_A_ys(double input_x) {
     double x1 = A[index].x; double y1 = A[index].y;
     if (x0 <= input_x && input_x <= x1) {
       if (x0 == x1) {
-        lo_y = y0;
+        lo_y = min(y0, y1);
       } else {
-        lo_y = (y1-y0)/(x1-x0) * (input_x - x0) + y0;
+        lo_y = (y1-y0) * (input_x - x0) / (x1-x0) + y0;
       }
       break;
     }
     x0 = x1; y0 = y1;
   }
 
+  index = min_A_x_index;
+  x0 = A[index].x; y0 = A[index].y;
   // A Upper
   while (index != max_A_x_index) {
     index = (index-1 < 0) ? num_a_points-1 : index-1;
     double x1 = A[index].x; double y1 = A[index].y;
     if (x0 <= input_x && input_x <= x1) {
       if (x0 == x1) {
-        hi_y = y0;
+        hi_y = max(y0, y1);
       } else {
-        hi_y = (y1-y0)/(x1-x0) * (input_x - x0) + y0;
+        hi_y = (y1-y0) * (input_x - x0) / (x1-x0) + y0;
       }
       break;
     }
@@ -76,33 +79,35 @@ pair<double, double> get_A_ys(double input_x) {
 
 pair<double, double> get_B_ys(double input_x) {
   int index = min_B_x_index;
-  double lo_y = -1; double hi_y = -1;
+  double lo_y = min_B_y; double hi_y = max_B_y;
   double x0 = B[index].x; double y0 = B[index].y;
 
   // B Below
   while (index != max_B_x_index) {
-    index = (index+1 == num_a_points) ? 0 : index+1;
+    index = (index+1 == num_b_points) ? 0 : index+1;
     double x1 = B[index].x; double y1 = B[index].y;
     if (x0 <= input_x && input_x <= x1) {
       if (x0 == x1) {
-        lo_y = y0;
+        lo_y = min(y0, y1);
       } else {
-        lo_y = (y1-y0)/(x1-x0) * (input_x - x0) + y0;
+        lo_y = (y1-y0) * (input_x - x0) / (x1-x0) + y0;
       }
       break;
     }
     x0 = x1; y0 = y1;
   }
 
+  index = min_B_x_index;
+  x0 = B[index].x; y0 = B[index].y;
   // B Upper
   while (index != max_B_x_index) {
-    index = (index-1 < 0) ? num_a_points-1 : index-1;
+    index = (index-1 < 0) ? num_b_points-1 : index-1;
     double x1 = B[index].x; double y1 = B[index].y;
     if (x0 <= input_x && input_x <= x1) {
       if (x0 == x1) {
-        hi_y = y0;
+        hi_y = max(y0, y1);
       } else {
-        hi_y = (y1-y0)/(x1-x0) * (input_x - x0) + y0;
+        hi_y = (y1-y0) * (input_x - x0) / (x1-x0) + y0;
       }
       break;
     }
@@ -125,25 +130,15 @@ double get_distance(pair<double, double> A_ys, pair<double, double> B_ys) {
 }
 
 void solution() {
+#ifdef DEBUG
   cout << "[A] X: " << min_A_x << " ~ " << max_A_x << endl;
-  cout << "    Y: " << min_A_y << " ~ " << max_A_y << endl;
   cout << "    i: " << min_A_x_index << ", " << max_A_x_index << endl;
   cout << "[B] X: " << min_B_x << " ~ " << max_B_x << endl;
-  cout << "    Y: " << min_B_y << " ~ " << max_B_y << endl;
   cout << "    i: " << min_B_x_index << ", " << max_B_x_index << endl;
+#endif
   if (max_A_x < min_B_x || max_B_x < min_A_x) {
     cout << 0 << endl;
     return;
-  }
-
-  if (max_A_y < min_B_y || max_B_y < min_A_y) {
-    cout << 0 << endl;
-    return;
-  }
-
-  upper_b = false;
-  if (max_A_y < max_B_y) {
-    upper_b = true;
   }
 
   double lo = max(min_A_x, min_B_x);
@@ -151,7 +146,9 @@ void solution() {
   double tri0_distance; 
   double tri1_distance; 
 
+#ifdef DEBUG
   cout << lo << " " << hi << " " << upper_b << endl;
+#endif
   for (int i = 0; i < 100; ++i) {
     double tri0 = (2*lo+hi)/3.0;
     double tri1 = (lo+2*hi)/3.0;
@@ -165,6 +162,7 @@ void solution() {
     tri0_distance = get_distance(tri0_A_ys, tri0_B_ys);
     tri1_distance = get_distance(tri1_A_ys, tri1_B_ys);
     
+#ifdef DEBUG
     cout << "[" << i << "]: " << endl;
     cout << "  Tri0: " << tri0 << ", Tri1: " << tri1 << " | " << endl;
     cout << "  -Tri0-" << endl;
@@ -175,6 +173,7 @@ void solution() {
     cout << "    A_ys: " << tri1_A_ys.first << ", " << tri1_A_ys.second << endl;
     cout << "    B_ys: " << tri1_B_ys.first << ", " << tri1_B_ys.second << endl;
     cout << "    DIST: " << tri1_distance << endl;
+#endif
 
     if (tri0_distance < tri1_distance) {
       lo = tri0;
@@ -183,7 +182,8 @@ void solution() {
     }
   }
 
-  cout << setprecision(8) << tri0_distance << endl;
+  if (tri0_distance < 0) cout << 0 << endl;
+  else cout << setprecision(8) << tri0_distance << endl;
 }
 
 int main() {
@@ -196,16 +196,16 @@ int main() {
     min_A_y = 101; max_A_y = -1;
     for (int i = 0; i < num_a_points; ++i) {
       double x, y; cin >> x; cin >> y;
-      if (min_A_x > x) {
+      if (min_A_x >= x) {
         min_A_x = x;
         min_A_x_index = i;
       }
-      if (max_A_x < x) {
+      if (max_A_x <= x) {
         max_A_x = x;
         max_A_x_index = i;
       }
-      min_A_y = min(min_A_y, y); 
-      max_A_y = max(max_A_y, y); 
+      min_A_y = min(min_A_y, y);
+      max_A_y = max(max_A_y, y);
       A[i].x = x; A[i].y = y;
     }
 
@@ -213,16 +213,16 @@ int main() {
     min_B_y = 101; max_B_y = -1;
     for (int i = 0; i < num_b_points; ++i) {
       double x, y; cin >> x; cin >> y;
-      if (min_B_x > x) {
+      if (min_B_x >= x) {
         min_B_x = x;
         min_B_x_index = i;
       }
-      if (max_B_x < x) {
+      if (max_B_x <= x) {
         max_B_x = x;
         max_B_x_index = i;
       }
-      min_B_y = min(min_B_y, y); 
-      max_B_y = max(max_B_y, y); 
+      min_B_y = min(min_B_y, y);
+      max_B_y = max(max_B_y, y);
       B[i].x = x; B[i].y = y;
     }
 
