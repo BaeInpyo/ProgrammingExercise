@@ -14,6 +14,8 @@ int max_course_in_semester;
 int priors[MAX_C];
 int courses[MAX_S];
 
+int cache[1 << MAX_C][MAX_S];
+
 int get_candidate(int taken) {
   int candidate = 0;
   for (int i = 0; i < num_courses; ++i) {
@@ -44,12 +46,15 @@ int get_count(int taken) {
 
 int get_min_semester(int taken, int start_semester) {
   if (get_count(taken) >= num_must_take) return 0;
-  int min_semester = MAX_S + 1;
+  int &min_semester = cache[taken][start_semester];
+  if (min_semester >= 0) return min_semester;
+  min_semester = MAX_S + 1;
+  int candidate = get_candidate(taken);
   for (int semester = start_semester; semester < num_semester; ++semester) {
-    int candidate = get_candidate(taken);
     int can_take = try_to_take(candidate, semester);
-    if (can_take) {
-      int next_taken = taken | can_take;
+    for (int take = can_take; take; take = ((take - 1) & can_take)) {
+      if (get_count(take) > max_course_in_semester) continue;
+      int next_taken = taken | take;
       int curr_min_semester = get_min_semester(next_taken, semester + 1) + 1;
       if (curr_min_semester < min_semester) {
         min_semester = curr_min_semester;
@@ -59,12 +64,16 @@ int get_min_semester(int taken, int start_semester) {
   return min_semester;
 }
 
-void solution() {
-  if (num_must_take == 0) {
-    cout << 0 << endl;
-    return;
+void initialize() {
+  for (int i = 0; i < (1 << MAX_C); ++i) {
+    for (int j = 0; j < MAX_S; ++j) {
+      cache[i][j] = -1;
+    }
   }
-  int taken = 0;
+}
+
+void solution() {
+  initialize();
   int answer = get_min_semester(0, 0);
   if (answer > MAX_S) {
     cout << "IMPOSSIBLE" << endl;
