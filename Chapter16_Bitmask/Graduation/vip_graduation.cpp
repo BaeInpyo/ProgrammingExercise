@@ -42,43 +42,35 @@ int get_count(int taken) {
   return count;
 }
 
-void solution() {
-#ifdef DEBUG
-  for (int i = 0; i < num_courses; ++i) {
-    cout << "PRIOR[" << i << "]: " << priors[i] << endl;
+int get_min_semester(int taken, int start_semester) {
+  if (get_count(taken) >= num_must_take) return 0;
+  int min_semester = MAX_S + 1;
+  for (int semester = start_semester; semester < num_semester; ++semester) {
+    int candidate = get_candidate(taken);
+    int can_take = try_to_take(candidate, semester);
+    if (can_take) {
+      int next_taken = taken | can_take;
+      int curr_min_semester = get_min_semester(next_taken, semester + 1) + 1;
+      if (curr_min_semester < min_semester) {
+        min_semester = curr_min_semester;
+      }
+    }
   }
+  return min_semester;
+}
 
-  for (int i = 0; i < num_semester; ++i) {
-    cout << "COURSE[" << i << "]: " << courses[i] << endl;
-  }
-#endif
+void solution() {
   if (num_must_take == 0) {
     cout << 0 << endl;
     return;
   }
   int taken = 0;
-  int answer = 0;
-
-  for (int semester = 0; semester < num_semester; ++semester) {
-    int candidate = get_candidate(taken);
-    int can_take = try_to_take(candidate, semester);
-#ifdef DEBUG
-    cout << "[" << semester << "] TAKEN    : " << taken << endl;
-    cout << "[" << semester << "] CANDIDATE: " << candidate << endl;
-    cout << "[" << semester << "] CAN TAKE : " << can_take << endl;
-#endif
-    if (can_take) {
-      taken |= can_take;
-      ++answer;
-      if (get_count(taken) >= num_must_take) {
-        cout << answer << endl;
-        return;
-      }
-    }
+  int answer = get_min_semester(0, 0);
+  if (answer > MAX_S) {
+    cout << "IMPOSSIBLE" << endl;
+  } else {
+    cout << answer << endl;
   }
-
-  cout << "IMPOSSIBLE" << endl;
-  return;
 }
 
 int main() {
