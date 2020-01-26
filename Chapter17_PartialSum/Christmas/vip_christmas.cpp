@@ -10,62 +10,58 @@ int num_tests;
 int num_boxes;
 int num_children;
 int num_dolls[MAX];
-long long int psum[MAX];
-int cache[MAX];
+
+int psum[MAX+1];
+long long int remains[MAX+1];
+int prev_idx[MAX+1];
+int cache[MAX+1];
 
 void initialize() {
-  psum[0] = num_dolls[0];
-  cache[0] = -1;
-  for (int i = 1; i < num_boxes; ++i) {
-    psum[i] += psum[i-1] + num_dolls[i];
-    cache[i] = -1;
+  for (int i = 0; i < MAX+1; ++i) {
+    remains[i] = 0;
+    prev_idx[i] = -1;
   }
-}
 
-bool can_divide(int start, int end) {
-  long long int num_dolls_ij = (start == 0) ? psum[end] : psum[end] - psum[start - 1];
-  return (num_dolls_ij >= num_children && num_dolls_ij % num_children == 0);
+  psum[0] = 0;
+  ++remains[psum[0]];
+  for (int i = 1; i < num_boxes+1; ++i) {
+    psum[i] = (psum[i-1] + num_dolls[i-1]) % num_children;
+    ++remains[psum[i]];
+  }
 }
 
 int calculate_num_ways() {
-  int result = 0;
+  long long int result = 0;
 
-  for (int i = 0; i < num_boxes; ++i) {
-    for (int j = i; j < num_boxes; ++j) {
-      if (can_divide(i, j)) {
-        result = (result + 1) % MOD;
-      }
+  for (int i = 0; i < num_children; ++i) {
+    long long int count = remains[i];
+    if (count >= 2) {
+      result = (result + ((count * (count-1)) / 2)) % MOD;
     }
   }
-
   return result;
 }
 
-int calculate_num_orders(int start) {
-  int &max_result = cache[start];
-  if (max_result >= 0) {
-    return max_result;
-  }
-  for (int length = 1; start + length - 1 < num_boxes; ++length) {
-    int end = start + length - 1;
-    int partial_max = calculate_num_orders(end + 1);
-
-    if (can_divide(start, end)) {
-      ++partial_max;
+int calculate_num_orders() {
+  for (int i = 0; i < num_boxes+1; ++i) {
+    if (i > 0)
+      cache[i] = cache[i-1];
+    else
+      cache[i] = 0;
+    int prev = prev_idx[psum[i]];
+    if (prev != -1) {
+      cache[i] = max(cache[i], cache[prev] + 1);
     }
-    
-    if (partial_max > max_result) {
-      max_result = partial_max;
-    }
+    prev_idx[psum[i]] = i;
   }
 
-  return max_result;
+  return cache[num_boxes];
 }
 
 void solution() {
   initialize();
   cout << calculate_num_ways() << " ";
-  cout << calculate_num_orders(0) << endl;
+  cout << calculate_num_orders() << endl;
 }
 
 int main() {
@@ -75,7 +71,7 @@ int main() {
   input_file >> num_tests;
   while (--num_tests >= 0) {
     input_file >> num_boxes; input_file >> num_children;
-    cout << num_boxes << " " << num_children << endl;
+    //cout << num_boxes << " " << num_children << endl;
     for (int i = 0; i < num_boxes; ++i) {
       input_file >> num_dolls[i];
     }
