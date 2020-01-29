@@ -23,11 +23,13 @@ class MeasureTime():
         print("Elapsed:", t1 - t0)
         return answer
 
+# pretty print dict
+def print_dict(dic):
+    print(json.dumps(dic, indent=4, sort_keys=True))
 
 # read line and return list of integer
 def read_line():
     return [int(x) for x in sys.stdin.readline().strip().split()]
-
 
 def get_psum_list(doll_list, k):
     """
@@ -126,7 +128,7 @@ def get_answer1(remainder_dict, k):
 
     return answer % 20091101
 
-def get_answer2(range_dict):
+def get_answer2(range_dict, n):
     """
     return answer of problem2
     To select as many non-overlapping range as possible, we need to consider
@@ -137,63 +139,45 @@ def get_answer2(range_dict):
     recursion to solve this problem. Iteration can help this.
     """
 
-    def recur(cache, start_index, range_dict, keys):
-        """
-        return maximum number of orders start from start_index
-        keys: list of range pair sorted by start_index of pair
-        """
-
-        if start_index in cache:
-            return cache[start_index]
-
-        # start_index is not in range_dict
-        # need to find range pair right after start_index
-        if start_index not in range_dict:
-            idx = bisect.bisect_left(keys, start_index)
-
-            # no pair left
-            if idx == len(keys):
-                return 0
-            else:
-                start_index = keys[idx]
-
-        # range_dict contains start_index now
-        next_index = range_dict[start_index]["next_index"]
-        end_index = range_dict[start_index]["end_index"]
-
-        if next_index is None:
-            # start_index is index of last range pair
-            return 1
-
-        # choose range starts from start_index
-        choose = recur(cache, end_index, range_dict, keys) + 1
-
-        # skip current range
-        not_choose = recur(cache, next_index, range_dict, keys)
-
-        # bigger one is answer
-        answer = max(choose, not_choose)
-
-        # set cache
-        cache[start_index] = answer
-
-        return answer
-
     # range_dict is empty dict
     if not range_dict:
         return 0
 
-    cache = dict()
+    cache = [0] * (n + 1)   # 1 dummy element
     keys = sorted(range_dict.keys())
-    answer = recur(cache, keys[0], range_dict, keys)
-    return answer
+
+    # fill cache
+    for idx in reversed(range(n)):
+        # idx is larger than any range pair
+        if idx > keys[-1]:
+            cache[idx] = 0
+            continue
+
+        start_index = keys[bisect.bisect_left(keys, idx)]
+        if idx < start_index:
+            # current index is not in range_dict
+            # fill current cache with value in right side
+            cache[idx] = cache[start_index]
+        elif idx == start_index:
+            # current index in in range_dict
+            # compare choosing and not choosing
+            end_index = range_dict[start_index]["end_index"]
+            choose = cache[end_index] + 1
+            not_choose = cache[start_index + 1]
+            cache[start_index] = max(choose, not_choose)
+
+    # print(cache)
+    return cache[0]
 
 def solution(n, k, doll_list):
     psum_list = get_psum_list(doll_list, k)
     remainder_dict = get_remainder_dict(psum_list)
     range_dict = get_range_dict(remainder_dict, k)
+    # print(psum_list)
+    # print_dict(remainder_dict)
+    # print_dict(range_dict)
     answer1 = get_answer1(remainder_dict, k)
-    answer2 = get_answer2(range_dict)
+    answer2 = get_answer2(range_dict, n)
 
     return "{} {}".format(answer1, answer2)
 
