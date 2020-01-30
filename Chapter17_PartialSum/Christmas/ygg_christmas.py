@@ -2,7 +2,6 @@ import sys
 from collections import OrderedDict
 from itertools import islice
 zeroToISum = {}
-patialSum = {}
 candidates = OrderedDict() # key: fr, value: to들
 envDict = {}
 
@@ -14,7 +13,6 @@ def solution_1(N, K, boxes):
     for fr in range(N):
         for to in range(fr, N):
             pSum = getPatialSum(fr,to)
-            patialSum[(fr,to)] = pSum
             if pSum % K == 0:
                 result += 1
                 if candidates.get(fr, -1) == -1:
@@ -62,7 +60,6 @@ if __name__ == '__main__':
         N, K = [int(elt) for elt in sys.stdin.readline().rstrip().split()]
         boxes = [int(elt) for elt in sys.stdin.readline().rstrip().split()]
         zeroToISum = {-1: 0}
-        patialSum = {}
         candidates = OrderedDict()
         envDict = {}
         camulativeSum = 0
