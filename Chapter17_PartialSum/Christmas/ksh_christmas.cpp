@@ -1,5 +1,71 @@
 #include<stdio.h>
+#define NOT_EXIST -1
 
+int n,k;
+int r[100001];
+int r_prev[100001];
+int num[1000001];
+int until[1000001];
+int prev[100001];
+int memo[100001]; // 1~i아이템까지에서 최대구간 개수
+
+int getAnswer1(){
+    long long int result =0;
+    for(int i=0; i<k; i++){
+        long long int temp = (r[i]*(r[i]-1))/2;
+        result = (result+temp)%20091101;
+    }
+    return (int)result;
+}
+
+int getAnswer2(){ // (현재 item idx, 최근에 고른 item)에서의 
+    memo[0]=0;
+    for(int i=1; i<=n; i++){
+        int pick=0;
+        int skip=0;
+        // 나를 안골랏을때의 최대값
+        skip = memo[i-1];
+        // 나를 골랐을때의 최대값
+        if(prev[i]!=NOT_EXIST){
+            pick = 1+memo[prev[i]];
+        }
+        memo[i]=pick > skip ? pick : skip;
+    }
+    return memo[n];
+}
+void init(){
+    for(int i=0; i<k; i++)
+        r[i]=0;
+    r[0]++;
+    r_prev[0]=0;
+    until[0]=0;
+}
+
+int main(){
+    freopen("input.txt","r",stdin);
+    int testcase;
+    scanf("%d", &testcase);
+    for(int tc=1; tc<=testcase; tc++){
+        scanf("%d %d", &n, &k);
+        init();
+        for(int i=1; i<=n; i++){
+            scanf("%d", &num[i]);
+            until[i] = (until[i-1]+num[i])%k;
+            prev[i]=NOT_EXIST;
+            if(r[until[i]]){ // 0이 아니면 이미 누군가가 들어왔던 적이 있는 것
+                prev[i] = r_prev[until[i]]; // 가장 최근에 들어왔던 인덱스
+            }
+            r[until[i]]++;
+            r_prev[until[i]]=i; // 가장 최근에 들어왔던 인덱스 업데이트
+        }
+        int answer1 = getAnswer1();
+        int answer2 = getAnswer2();
+        printf("%d %d\n", answer1, answer2);
+    }
+}
+
+
+/*
 int n,k;
 int r[100000];  //얘는 그냥 나머지 나오는 애들 다 저장 
                 // 그리고 2개씩 조합 개수를 구한다.
@@ -56,4 +122,4 @@ int main(){
         solution();
     }
 }
-// 아 동적계획법이구나 ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ 
+*/
