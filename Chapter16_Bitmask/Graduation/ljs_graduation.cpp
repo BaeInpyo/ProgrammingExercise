@@ -1,9 +1,8 @@
 #include <iostream>
 #include <vector>
-#include <stdio.h>
-#include <bitset>
 
 using namespace std;
+
 static const int INF = 987654321;
 static int N, K, M, L;
 static int prerequsites[12];
