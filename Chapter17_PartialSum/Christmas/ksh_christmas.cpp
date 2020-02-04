@@ -12,7 +12,8 @@ int memo[100001]; // 1~i아이템까지에서 최대구간 개수
 int getAnswer1(){
     long long int result =0;
     for(int i=0; i<k; i++){
-        long long int temp = (r[i]*(r[i]-1))/2;
+        long long int a = r[i];
+        long long int temp = (a*(a-1))/2;
         result = (result+temp)%20091101;
     }
     return (int)result;
