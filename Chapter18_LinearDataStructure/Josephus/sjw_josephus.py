@@ -71,6 +71,8 @@ def solution(n, k):
     Use list to keep alive soldiers.
     Time complexity is (N^2) but since this problem has very short time limit
     actual execution time is more important than complexity.
+
+    list.pop() and del list[idx] takes almost same time in this problem.
     """
 
     soldiers = [num for num in range(1, n + 1)]
