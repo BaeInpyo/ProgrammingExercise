@@ -82,9 +82,7 @@ void solution() {
   string curr_state = states[0];
   for (int i = 1; i < num_states + 1; ++i) {
     string next_state = states[i];
-    if (curr_state == next_state) {
-      num_rotate += next_state.size();
-    } else if (is_clockwise(i)) {
+    if (is_clockwise(i)) {
       num_rotate += get_num_rotate(next_state, curr_state);
     } else {
       num_rotate += get_num_rotate(curr_state, next_state);
