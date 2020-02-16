@@ -55,23 +55,25 @@ vector<int> get_partial_substring(string &str) {
 }
 
 int get_num_rotate(string &base, string &target) {
-  int base_size = base.size();
+  string base_ = base + base;
+  int base_size = base_.size();
   int target_size = target.size();
 
   vector<int> pi = get_partial_substring2(target);
 
   int matched = 0;
   for (int i = 1; i < base_size; ++i) {
-    while (matched > 0 && base[i] != target[matched]) {
+    while (matched > 0 && base_[i] != target[matched]) {
       matched = pi[matched - 1];
     }
 
-    if (base[i] == target[matched]) {
+    if (base_[i] == target[matched]) {
       ++matched;
+      if (matched == target_size) {
+        return i - matched + 1;
+      }
     }
   }
-
-  return base_size - matched;
 }
 
 void solution() {
@@ -80,7 +82,9 @@ void solution() {
   string curr_state = states[0];
   for (int i = 1; i < num_states + 1; ++i) {
     string next_state = states[i];
-    if (is_clockwise(i)) {
+    if (curr_state == next_state) {
+      num_rotate += next_state.size();
+    } else if (is_clockwise(i)) {
       num_rotate += get_num_rotate(next_state, curr_state);
     } else {
       num_rotate += get_num_rotate(curr_state, next_state);
