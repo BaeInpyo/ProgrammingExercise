@@ -39,19 +39,9 @@ void solution() {
   vector<int> suffix = get_suffix_array(words);
 
   int max_length = 0;
-  for (int i = 0; i < suffix.size(); ++i) {
-    int length = n - suffix[i];
-    int k = cnt - 1;
-    for (int j = i+1; j < suffix.size() && k > 0; ++j, --k) {
-      length = common_prefix(suffix[i], suffix[j]);
-      if (length == 0) {
-        break;
-      }
-    }
-
-    if (k == 0) {
-      max_length = max(max_length, length);
-    }
+  for (int i = 0; i < suffix.size() - cnt; ++i) {
+    int length = common_prefix(suffix[i], suffix[i+cnt-1]);
+    max_length = max(max_length, length);
   }
 
   cout << max_length << endl;
