@@ -15,33 +15,38 @@ class fortress():
                 self.depth = max(self.depth, _depth + 1)
                 return self.depth
 
-        inner_copy = self.inner.copy()
-        for k, v in self.inner.items():
-            if _isin(k, _key):
-                _fortress.insert(k, v)
-                del inner_copy[k]
+        # inner_copy = self.inner.copy()
+        # for k, v in self.inner.items():
+        #     if _isin(k, _key):
+        #         _fortress.insert(k, v)
+        #         del inner_copy[k]
+        # self.inner = inner_copy
         self.depth = max(self.depth, _fortress.depth + 1)
-        self.inner = inner_copy
         self.inner[_key] = _fortress
         return self.depth
 
     def bfs(self):
         if self.depth == 1: return 0
-        depths = []
+        d1, d2 = 0, 0
         ret = 0
-        for _, v in self.inner.items():
-            depths.append(v.depth)
+        for v in self.inner.values():
             ret = max(ret, v.bfs())
-        return max(ret, sum(sorted(depths, reverse=True)[:2]))
+            if d2 < v.depth: d2 = v.depth
+            if d2 > d1: d1, d2 = d2, d1
+        return max(ret, d1 + d2)
 
 
 for _ in range(int(input())):
     n = int(input())
     root = fortress()
+    tuples = []
     for _ in range(n):
-        xyr = tuple(map(int, input().split()))
+        tuples.append(tuple(map(int, input().split())))
+    tuples.sort(key=lambda t: t[2], reverse=True)
+    
+    for xyr in tuples:
         _fortress = fortress()
         root.insert(xyr, _fortress)
     
-    ret = list(root.inner.values())[0].bfs()
+    ret = next(iter(root.inner.values())).bfs()
     print(ret)
