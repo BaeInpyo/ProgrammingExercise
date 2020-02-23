@@ -54,9 +54,8 @@ class Fortress {
   }
 
   void Insert(int x, int y, int r);
-  void PrintNumCross();
- private:
   Wall *root_;
+ private:
 };
 
 void Fortress::Insert(int x, int y, int r) {
@@ -93,16 +92,15 @@ void Fortress::Insert(int x, int y, int r) {
   }
 }
 
-void Fortress::PrintNumCross() {
-  if (root_->inners.empty()) {
-    cout << 0 << endl;
-    return;
+int PrintNumCrossInternal(vector<Wall *> &walls) {
+  if (walls.empty()) {
+    return 0;
   }
-  vector<Wall *> &inners = root_->inners;
-  int max_depth = inners[0]->get_depth();
+
+  int max_depth = walls[0]->get_depth();
   int snd_depth = -1;
-  for (int i = 1; i < inners.size(); ++i) {
-    int depth = inners[i]->get_depth();
+  for (int i = 1; i < walls.size(); ++i) {
+    int depth = walls[i]->get_depth();
     if (depth >= max_depth) {
       snd_depth = max_depth;
       max_depth = depth;
@@ -112,10 +110,20 @@ void Fortress::PrintNumCross() {
   }
 
   if (snd_depth == -1) {
-    cout << max_depth << endl;
+    return max_depth;
   } else {
-    cout << max_depth + snd_depth << endl;
+    return max_depth+snd_depth;
   }
+}
+
+int PrintNumCross(vector<Wall *> &walls) {
+  int answer = PrintNumCrossInternal(walls);
+
+  for (Wall *wall : walls) {
+    answer = max(answer, PrintNumCross(wall->inners));
+  }
+
+  return answer;
 }
 
 int num_tests;
@@ -135,7 +143,7 @@ int main() {
       cin >> x; cin >> y; cin >> r;
       fortress.Insert(x, y, r);
     }
-    fortress.PrintNumCross();
+    cout << PrintNumCross(fortress.root_->inners) << endl;
   }
   return 0;
 }
