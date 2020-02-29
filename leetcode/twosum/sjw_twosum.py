@@ -1,28 +1,41 @@
-"""
-Problem url: https://leetcode.com/problems/two-sum/
-"""
-
-from typing import List
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
 
 class Solution:
-    def twoSum(self, nums: List[int], target: int) -> List[int]:
-        """
-        Input has exactly 1 solution.
-        Be careful not to use same index. Same value with different
-        index is allowed. For example, answer of ([3 ,3], 6) is [0, 1].
-        Answer of ([3, 2, 4], 6) is [1, 2].
-        """
+    def addTwoNumbers(self, l1: ListNode, l2: ListNode) -> ListNode:
+        def listToInt(node):
+            """
+            read whole linked list and return corresponding integer
+            """
+            digit = 0
+            number = 0
+            curr_node = node
+            while curr_node:
+                number += pow(10, digit) * curr_node.val
+                curr_node = curr_node.next
+                digit += 1
+                
+            return number
+        
+        def intToList(num):
+            """
+            return linked list which represents integer
+            """
+            root_node = ListNode(num % 10)
+            curr_node = root_node
+            num //= 10
+            while num:
+                next_node = ListNode(num % 10)
+                curr_node.next = next_node
+                curr_node = next_node
+                num //= 10
+                
+            return root_node
+        
+        num1 = listToInt(l1)
+        num2 = listToInt(l2)
 
-        dic = dict() # key: number in nums, value: index of number
-        for (idx, num) in enumerate(nums):
-            remain = target - num
-
-            if remain in dic:
-                return [dic[remain], idx]
-
-            dic[num] = idx
-
-sol = Solution()
-print(sol.twoSum([2, 7, 11, 15], 9))
-print(sol.twoSum([3, 3], 6))
-print(sol.twoSum([3, 2, 4], 6))
+        return intToList(num1 + num2)
