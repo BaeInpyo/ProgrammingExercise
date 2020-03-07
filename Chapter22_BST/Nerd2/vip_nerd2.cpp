@@ -16,6 +16,11 @@ Info infos[MAX];
 class Participant {
   public:
     Participant(Info *info) : info_(info) {};
+    ~Participant() { 
+      info_ = nullptr;
+      left_ = nullptr;
+      right_ = nullptr;
+    }
     Info *get_info() { return info_; }
     int get_num_problem() { return info_->num_problem; }
     int get_num_ramen() { return info_->num_ramen; }
@@ -36,6 +41,7 @@ class Participant {
     void Replace(Participant *candidate);
     int Resolve(Participant *candidate);
     bool Delete();
+
     Info *info_ = nullptr;
     Participant *left_ = nullptr;
     Participant *right_ = nullptr;
@@ -47,27 +53,30 @@ bool Participant::ShouldDelete(Participant *candidate) {
 }
 
 int Participant::Insert(Participant *candidate) {
-  if (this->get_num_problem() > candidate->get_num_problem()) {
-    if (this->get_num_ramen() > candidate->get_num_ramen()) {
-      return 0;
-    } else {
-      Participant *left = this->get_left();
-      if (left != nullptr) return this->get_left()->Insert(candidate);
-      else {
-        this->set_left(candidate);
-        return 1;
-      }
-    }
-  } else {
-    if (this->get_num_ramen() > candidate->get_num_ramen()) {
-      Participant *right = this->get_right();
-      if (right != nullptr) return this->get_right()->Insert(candidate);
-      else {
-        this->set_right(candidate);
-        return 1;
+  Participant *current = this;
+  while (true) {
+    if (current->get_num_problem() > candidate->get_num_problem()) {
+      if (current->get_num_ramen() > candidate->get_num_ramen()) {
+        return 0;
+      } else {
+        Participant *left = current->get_left();
+        if (left != nullptr) current = left;
+        else {
+          current->set_left(candidate);
+          return 1;
+        }
       }
     } else {
-      return Resolve(candidate);
+      if (current->get_num_ramen() > candidate->get_num_ramen()) {
+        Participant *right = current->get_right();
+        if (right != nullptr) current = right;
+        else {
+          current->set_right(candidate);
+          return 1;
+        }
+      } else {
+        return Resolve(candidate);
+      }
     }
   }
 }
@@ -76,6 +85,7 @@ void Participant::Replace(Participant *candidate) {
   this->set_info(candidate->get_info());
   this->set_left(candidate->get_left());
   this->set_right(candidate->get_right());
+  delete candidate;
 }
 
 int Participant::Resolve(Participant *candidate) {
