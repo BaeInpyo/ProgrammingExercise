@@ -15,21 +15,28 @@ int num_people;
 Info infos[MAX];
 map<int, int> participants;
 
+void Delete(map<int, int>::iterator &iter, int num_ramen) {
+  if (iter == participants.begin()) return;
+  --iter;
+  while (iter != participants.end() && iter->second < num_ramen) {
+    iter = participants.erase(iter);
+    if (iter == participants.begin()) return;
+    else --iter;
+  }
+}
+
 void Insert(int index) {
   auto &info = infos[index];
   int num_problem = info.num_problem;
   int num_ramen = info.num_ramen;
-  auto iter = participants.lower_bound(num_problem);
+  auto iter = participants.upper_bound(num_problem);
   if (iter == participants.end()) { // num_problem is biggest
-    --iter;
-    while (iter != participants.end() && iter->second < num_ramen) {
-      iter = participants.erase(iter);
-      if (participants.size() > 0) --iter;
-    }
+    Delete(iter, num_ramen);
   } else {
     if (iter->second > num_ramen) {
       return;
     }
+    Delete(iter, num_ramen);
   }
   participants.insert({num_problem, num_ramen});
 }
