@@ -13,7 +13,7 @@ postorer = left -> right -> root
 
 def solution(n, preorder, inorder):
     def print_postorder(preorder, inorder):
-        if not inorder:
+        if not preorder or not inorder:
             return
 
         # preorder[0] is root of tree because it searches root first
@@ -21,17 +21,10 @@ def solution(n, preorder, inorder):
 
         # inorder traversal searches in left -> root -> right order
         # so we can find left and right subtree
-        try:
-            index = inorder.index(root)
-        except ValueError:
-            return
+        index = inorder.index(root)
 
-        left = inorder[:index]
-        right = inorder[index+1:]
-
-        preorder.pop(0)
-        print_postorder(preorder, left)
-        print_postorder(preorder, right)
+        print_postorder(preorder[1:index+1], inorder[:index])
+        print_postorder(preorder[index+1:], inorder[index+1:])
         print(root, end=" ")
 
     print_postorder(preorder, inorder)
