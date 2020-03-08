@@ -24,7 +24,7 @@ void Insert(int index) {
     --iter;
     while (iter != participants.end() && iter->second < num_ramen) {
       iter = participants.erase(iter);
-      --iter;
+      if (participants.size() > 0) --iter;
     }
   } else {
     if (iter->second > num_ramen) {
