@@ -7,6 +7,7 @@ using namespace std;
 int num_tests;
 int n;
 int moved[MAX];
+int answer[MAX];
 
 class Node {
  public:
@@ -95,12 +96,29 @@ Node *erase(Node *root, int key) {
   return root;
 }
 
+Node *kth(Node *root, int k) {
+  int left_size = 0;
+  if (root->get_left() != nullptr) left_size = root->get_left()->get_size();
+  if (k <= left_size) return kth(root->get_left(), k);
+  else if (k == left_size + 1) return root;
+  return kth(root->get_right(), k - left_size - 1);
+}
+
 void solution() {
   Node *root = nullptr;
   for (int i = 1; i <= n; ++i) {
     root = insert(root, new Node(i));
   }
-  cout << root->get_depth() << endl;
+  int count = n;
+  for (int i = n-1, count = n; i >= 0; --i, --count) {
+    Node *kth_node = kth(root, count - moved[i]);
+    answer[i] = kth_node->get_key();
+    root = erase(root, kth_node->get_key());
+  }
+  for (int i = 0; i < n; ++i) {
+    cout << answer[i] << " ";
+  }
+  cout << endl;
 }
 
 int main() {
@@ -109,9 +127,9 @@ int main() {
 
   while (--num_tests >= 0) {
     cin >> n;
-    //for (int i = 0; i < n; ++i) {
-    //  cin >> moved[i];
-    //}
+    for (int i = 0; i < n; ++i) {
+      cin >> moved[i];
+    }
 
     solution();
   }
