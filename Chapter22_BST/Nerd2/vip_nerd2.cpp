@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 
 #define MAX 50000
 
@@ -12,139 +13,41 @@ struct Info {
 int num_tests;
 int num_people;
 Info infos[MAX];
+map<int, int> participants;
 
-class Participant {
-  public:
-    Participant(Info *info) : info_(info) {};
-    ~Participant() { 
-      info_ = nullptr;
-      left_ = nullptr;
-      right_ = nullptr;
-    }
-    Info *get_info() { return info_; }
-    int get_num_problem() { return info_->num_problem; }
-    int get_num_ramen() { return info_->num_ramen; }
-    Participant *get_left() { return left_; }
-    Participant *get_right() { return right_; }
-
-    void set_info(Info *info) { info_ = info; }
-    void set_left(Participant *left) { 
-      left_ = left;
-    }
-    void set_right(Participant *right) { 
-      right_ = right;
-    }
-
-    int Insert(Participant *candidate);
-  private:
-    bool ShouldDelete(Participant *candidate);
-    void Replace(Participant *candidate);
-    int Resolve(Participant *candidate);
-    bool Delete();
-
-    Info *info_ = nullptr;
-    Participant *left_ = nullptr;
-    Participant *right_ = nullptr;
-};
-
-bool Participant::ShouldDelete(Participant *candidate) {
-  return (this->get_num_problem() < candidate->get_num_problem() &&
-          this->get_num_ramen() < candidate->get_num_ramen());
-}
-
-int Participant::Insert(Participant *candidate) {
-  Participant *current = this;
-  while (true) {
-    if (current->get_num_problem() > candidate->get_num_problem()) {
-      if (current->get_num_ramen() > candidate->get_num_ramen()) {
-        return 0;
-      } else {
-        Participant *left = current->get_left();
-        if (left != nullptr) current = left;
-        else {
-          current->set_left(candidate);
-          return 1;
-        }
-      }
-    } else {
-      if (current->get_num_ramen() > candidate->get_num_ramen()) {
-        Participant *right = current->get_right();
-        if (right != nullptr) current = right;
-        else {
-          current->set_right(candidate);
-          return 1;
-        }
-      } else {
-        return Resolve(candidate);
-      }
-    }
+void Delete(map<int, int>::iterator &iter, int num_ramen) {
+  if (iter == participants.begin()) return;
+  --iter;
+  while (iter != participants.end() && iter->second < num_ramen) {
+    iter = participants.erase(iter);
+    if (iter == participants.begin()) return;
+    else --iter;
   }
 }
 
-void Participant::Replace(Participant *candidate) {
-  this->set_info(candidate->get_info());
-  this->set_left(candidate->get_left());
-  this->set_right(candidate->get_right());
-  delete candidate;
-}
-
-int Participant::Resolve(Participant *candidate) {
-  int num_delete = 0;
-  while (this->ShouldDelete(candidate)) {
-    ++num_delete;
-    if (!this->Delete()) {
-      this->Replace(candidate);
-      return -1 * num_delete + 1;
-    }
-  }
-  return -1 * num_delete + this->Insert(candidate);
-}
-
-bool Participant::Delete() {
-  Participant *left = this->get_left();
-  Participant *right = this->get_right();
-  Participant *new_root;
-  if (left == nullptr && right == nullptr) {
-    return false;
-  } else if (left != nullptr && right == nullptr) {
-    new_root = left;
-  } else if (left == nullptr && right != nullptr) {
-    new_root = right;
+void Insert(int index) {
+  auto &info = infos[index];
+  int num_problem = info.num_problem;
+  int num_ramen = info.num_ramen;
+  auto iter = participants.upper_bound(num_problem);
+  if (iter == participants.end()) { // num_problem is biggest
+    Delete(iter, num_ramen);
   } else {
-    new_root = left;
-    right->Insert(left->get_right());
-    left->set_right(right);
+    if (iter->second > num_ramen) {
+      return;
+    }
+    Delete(iter, num_ramen);
   }
-
-  this->Replace(new_root);
-  return true;
-}
-
-class Contest {
- public:
-  Contest() : root_(new Participant(&infos[0])), num_participants_(1) {}
-  int get_num_participants();
-
-  void Apply(int index);
-
- private:
-  Participant *root_ = nullptr;
-  int num_participants_ = 0;
-};
-
-int Contest::get_num_participants() { return num_participants_; }
-
-void Contest::Apply(int index) {
-  auto candidate = new Participant(&infos[index]);
-  num_participants_ += root_->Insert(candidate);
+  participants.insert({num_problem, num_ramen});
 }
 
 void solution() {
-  Contest contest;
+  participants.clear();
   int result = 1;
+  participants.insert({infos[0].num_problem, infos[0].num_ramen});
   for (int i = 1; i < num_people; ++i) {
-    contest.Apply(i);
-    result += contest.get_num_participants();
+    Insert(i);
+    result += participants.size();
   }
   cout << result << endl;
 }
