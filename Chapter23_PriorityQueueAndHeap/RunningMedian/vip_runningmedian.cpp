@@ -27,6 +27,24 @@ void initialize() {
   }
 }
 
+void push(std::vector<int> &my_heap, int number, bool is_min = false) {
+  my_heap.push_back(number);
+  if (is_min) {
+    push_heap(my_heap.begin(), my_heap.end(), greaters());
+  } else {
+    push_heap(my_heap.begin(), my_heap.end());
+  }
+}
+
+void pop(std::vector<int> &my_heap, bool is_min = false) {
+  if (is_min) {
+    pop_heap(my_heap.begin(), my_heap.end(), greaters());
+  } else {
+    pop_heap(my_heap.begin(), my_heap.end());
+  }
+  my_heap.pop_back();
+}
+
 void solution() {
   initialize();
   int result = numbers[0];
@@ -38,30 +56,22 @@ void solution() {
     for (int i = 1; i < n; ++i) {
       int number = numbers[i];
       if (max_heap[0] > number) {
-        max_heap.push_back(number);
-        push_heap(max_heap.begin(), max_heap.end());
+        push(max_heap, number);
         if (max_heap.size() - min_heap.size() > 1) {
-          min_heap.push_back(max_heap[0]);
-          push_heap(min_heap.begin(), min_heap.end(), greaters());
-          pop_heap(max_heap.begin(), max_heap.end());
-          max_heap.pop_back();
+          push(min_heap, max_heap[0], true);
+          pop(max_heap);
         }
       } else if (min_heap.size() > 0 && min_heap[0] < number) {
-        min_heap.push_back(number);
-        push_heap(min_heap.begin(), min_heap.end(), greaters());
+        push(min_heap, number, true);
         if (max_heap.size() < min_heap.size()) {
-          max_heap.push_back(min_heap[0]);
-          push_heap(max_heap.begin(), max_heap.end());
-          pop_heap(min_heap.begin(), min_heap.end(), greaters());
-          min_heap.pop_back();
+          push(max_heap, min_heap[0]);
+          pop(min_heap, true);
         }
       } else {
         if (max_heap.size() == min_heap.size()) {
-          max_heap.push_back(number);
-          push_heap(max_heap.begin(), max_heap.end());
+          push(max_heap, number);
         } else {
-          min_heap.push_back(number);
-          push_heap(min_heap.begin(), min_heap.end(), greaters());
+          push(min_heap, number, true);
         }
       }
       result = (result + max_heap[0]) % MOD;
