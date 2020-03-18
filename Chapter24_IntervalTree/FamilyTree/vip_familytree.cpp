@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <deque>
 
 #define MAX_N 100000
 #define MAX_Q 10000
@@ -9,7 +10,9 @@ using namespace std;
 int num_tests;
 int num_people;
 int num_pairs;
-int parent[MAX_N];
+vector<int> children_map[MAX_N];
+int serialized[MAX_N];
+int serial_map[MAX_N];
 int pairs_first[MAX_Q];
 int pairs_second[MAX_Q];
 int depth[MAX_N];
@@ -82,15 +85,36 @@ int calcKinship(int a, int b, Person *root) {
   }
 }
 
+void initialize() {
+  int serial_no = 0;
+  deque<pair<int, int>> stack;
+  for (int child : children_map[0]) {
+    stack.push_back({0, child});
+  }
+  while (!stack.empty()) {
+    auto info = stack.front();
+    stack.pop_front();
+    serialized[serial_no] = info.first;
+
+    for (int i = children_map[info.second].size() - 1; i >= 0; --i)
+      stack.push_front({serial_no+1, children_map[info.second][i]});
+    serial_map[info.second] = serial_no+1;
+    ++serial_no;
+  }
+  for (int i = 0; i < num_people; ++i) children_map[i].clear();
+}
+
 void solution() {
+  initialize(); 
   Person *root = new Person(0);
   depth[0] = 1;
+
   for (int i = 0; i < num_people-1; ++i) {
-    root->PushChild(parent[i], i+1);
+    root->PushChild(serialized[i], i+1);
   }
 
   for (int i = 0; i < num_pairs; ++i) {
-    cout << calcKinship(pairs_first[i], pairs_second[i], root) << endl;
+    cout << calcKinship(serial_map[pairs_first[i]], serial_map[pairs_second[i]], root) << endl;
   }
 }
 
@@ -100,7 +124,8 @@ int main() {
   while (--num_tests >= 0) {
     cin >> num_people; cin >> num_pairs;
     for (int i = 0; i < num_people-1; ++i) {
-      cin >> parent[i];
+      int p; cin >> p;
+      children_map[p].push_back(i+1);
     }
     for (int i = 0; i < num_pairs; ++i) {
       cin >> pairs_first[i];
