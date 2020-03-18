@@ -12,6 +12,7 @@ int num_pairs;
 int parent[MAX_N];
 int pairs_first[MAX_Q];
 int pairs_second[MAX_Q];
+int depth[MAX_N];
 
 class Person {
  public:
@@ -52,6 +53,7 @@ void Person::PushChild(int parent_id, int child_id) {
     }
   }
   current->PushChild(child_id);
+  depth[child_id] = depth[current->id] + 1;
 }
 
 Person *Person::FindNextParent(int child_id) {
@@ -74,7 +76,7 @@ int calcKinship(int a, int b, Person *root) {
   Person *next_parent_a = root->FindNextParent(a);
   Person *next_parent_b = root->FindNextParent(b);
   if (next_parent_a != next_parent_b) {
-    return root->CalcDepth(a) + root->CalcDepth(b);
+    return depth[a] + depth[b] - 2 * depth[root->get_id()];
   } else {
     return calcKinship(a, b, next_parent_a);
   }
@@ -82,6 +84,7 @@ int calcKinship(int a, int b, Person *root) {
 
 void solution() {
   Person *root = new Person(0);
+  depth[0] = 1;
   for (int i = 0; i < num_people-1; ++i) {
     root->PushChild(parent[i], i+1);
   }
