@@ -29,7 +29,8 @@ class Trie {
       children_[code] = child;
     } else {
       child = children_[code];
-      if (freq[child->most_freq_index_] < freq[index]) {
+      if (freq[child->most_freq_index_] < freq[index] ||
+         (freq[child->most_freq_index_] == freq[index] && words[child->most_freq_index_].compare(words[index]) > 0)) {
         child->most_freq_index_ = index;
       }
     }
