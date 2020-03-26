@@ -16,8 +16,8 @@ string answer = "";
 const string wrong_string = "INVALID HYPOTHESIS";
 bool wrong = false;
 
-int char_to_int(char c) { return c - 'a'; }
-char int_to_char(int c) { return c + 'a'; }
+inline int char_to_int(char c) { return c - 'a'; }
+inline char int_to_char(int c) { return c + 'a'; }
 
 void initialize() {
   answer = "";
@@ -52,8 +52,7 @@ string dfs(int v, string path = "") {
   for (auto iter = edge.begin(); iter != edge.end(); ++iter) {
     if (!visited[*iter])
       result = dfs(*iter, path) + result;
-    else
-      if (path.find(int_to_char(*iter)) != string::npos) wrong = true;
+    else if (path.find(int_to_char(*iter)) != string::npos) wrong = true;
   }
   return int_to_char(v) + result;
 }
