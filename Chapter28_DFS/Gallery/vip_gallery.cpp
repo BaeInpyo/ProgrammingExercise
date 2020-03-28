@@ -22,47 +22,42 @@ void initialize() {
   counter = 0;
 }
 
-void install_camera(int here, bool is_root) {
+void install_camera(int here) {
   int children = 0;
   discovered[here] = counter++;
   for (int i = 0; i < adj[here].size(); ++i) {
     int there = adj[here][i];
     if (discovered[there] == -1) {
       ++children;
-      install_camera(there, false);
+      install_camera(there);
     }
   }
 
-  if (!covered[here]) {
-    int parent = here;
-    int parent_size = 0;
+  if (children > 0) {
+    bool need_to_install = false;
     for (int i = 0; i < adj[here].size(); ++i) {
       int there = adj[here][i];
-      if (discovered[there] < discovered[here]) {
-        if (adj[there].size() > parent_size) {
-          parent_size = adj[there].size();
-          parent = there;
-        }
+      if (discovered[there] > discovered[here] && !covered[there]) {
+        need_to_install = true;
+        break;
       }
     }
-
-    installed[parent] = true;
-    covered[parent] = true;
-    for (int i = 0; i < adj[parent].size(); ++i) {
-      int there = adj[parent][i];
-      covered[there] = true;
+    if (need_to_install) {
+      installed[here] = true;
+      covered[here] = true;
+      for (int i = 0; i < adj[here].size(); ++i) {
+        int there = adj[here][i];
+        covered[there] = true;
+      }
     }
-  }
-  
-  if (children == 0) {
-    if (is_root) installed[here] = true;
   }
 }
 
 void solution() {
   initialize();
   for (int i = 0; i < num_gallery; ++i) {
-    if (discovered[i] == -1) install_camera(i, true);
+    if (discovered[i] == -1) install_camera(i);
+    if (!covered[i]) installed[i] = true;
   }
 
   int count = 0;
