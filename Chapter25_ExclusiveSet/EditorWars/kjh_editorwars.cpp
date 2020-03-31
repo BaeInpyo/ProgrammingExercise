@@ -10,6 +10,7 @@ struct NODE {
 };
 
 NODE* root(NODE* _node) {
+    if (!_node) return 0;
     auto node = _node;
     while (node->parent) {
         node = node->parent;
@@ -61,14 +62,23 @@ int main() {
                 NODE* bnode = &users[b];
                 auto aroot = root(anode);
                 auto broot = root(bnode);
-                if (aroot == broot->counter || broot == aroot->counter) {
+                if (aroot == root(broot->counter) || broot == root(aroot->counter)) {
                     cont = true;
                     cout << "CONTRADICTION AT " << i+1 << '\n';
                     continue;
                 }
                 auto _node = merge(anode, bnode);
-                if (aroot->counter && broot->counter)
-                    _node->counter = merge(aroot->counter, broot->counter);
+                if (aroot->counter && broot->counter) {
+                    auto _counter = merge(aroot->counter, broot->counter);
+                    _node->counter = _counter;
+                    _counter->counter = _node;
+                }
+                else if (aroot->counter) {
+                    _node->counter = root(aroot->counter);
+                }
+                else if (broot->counter) {
+                    _node->counter = root(broot->counter);
+                }
             }
             else if (s[0] == 'D') {
                 NODE* anode = &users[a];
@@ -80,17 +90,22 @@ int main() {
                     cout << "CONTRADICTION AT " << i+1 << '\n';
                     continue;
                 }
-                if (!aroot->counter)
+
+                if (!aroot->counter && !broot->counter) {
                     aroot->counter = broot;
-                else {
-                    auto _node = merge(aroot->counter, bnode);
-                    aroot->counter = _node;
-                }
-                if (!broot->counter)
                     broot->counter = aroot;
+                }
+                else if (!aroot->counter) {
+                    aroot->counter = broot;
+                    broot->counter = merge(broot->counter, anode);
+                }
+                else if (!broot->counter) {
+                    broot->counter = aroot;
+                    aroot->counter = merge(aroot->counter, bnode);
+                }
                 else {
-                    auto _node = merge(broot->counter, anode);
-                    broot->counter = _node;
+                    aroot->counter = merge(aroot->counter, bnode);
+                    broot->counter = merge(broot->counter, anode);
                 }
             }
             else return -123;
@@ -107,7 +122,7 @@ int main() {
             if (i == _root->val) {
                 auto _counter = _root->counter;
                 if (_counter) {
-                    if (_counter->val > i) // not visited yet
+                    if (_counter->val < i) // not visited yet
                         ret += max(_counter->size, _root->size);
                 }
                 else {
