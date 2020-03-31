@@ -19,29 +19,26 @@ void solution() {
     vector<int> enemy(n, -1);
     string s;
     int a, b;
-    bool cont;
+    bool cont = false;
     for (int i=0; i < m; i++) {
         cin >> s >> a >> b;
+        if (cont) continue;
         int pa = find(a, disj);
         int pb = find(b, disj);
         if (s == "ACK") cont = ack(pa, pb, disj, rank, size, enemy);
         else cont = dis(pa, pb, disj, rank, size, enemy);
         if (cont) {
             cout << "CONTRADICTION AT " << i+1 << endl;
-            return;
         }
     }
+    if (cont) return;
     result(disj, size, enemy);
 }
 
 int find(int a, vector<int>& disj) {
-    vector<int> stack;
-    while (a != disj[a]) {
-        stack.push_back(a);
-        a = disj[a];
-    }
-    for (int n : stack) disj[n] = a;
-    return a;
+    if (a == -1) return -1;
+    if (a == disj[a]) return a;
+    return disj[a] = find(disj[a], disj);
 }
 
 int merge(int pa, int pb, vector<int>& disj, vector<int>& rank, vector<int>& size) {
@@ -56,7 +53,7 @@ int merge(int pa, int pb, vector<int>& disj, vector<int>& rank, vector<int>& siz
 bool ack(int pa, int pb, vector<int>& disj, vector<int>& rank, vector<int>& size, vector<int>& enemy) {
     if (enemy[pa] != pb) {
         int m = merge(pa, pb, disj, rank, size);
-        int e = merge(enemy[pa], enemy[pb], disj, rank, size);
+        int e = merge(find(enemy[pa], disj), find(enemy[pb], disj), disj, rank, size);
         enemy[m] = e;
         if (e != -1) enemy[e] = m;
         return false;
@@ -66,8 +63,8 @@ bool ack(int pa, int pb, vector<int>& disj, vector<int>& rank, vector<int>& size
 
 bool dis(int pa, int pb, vector<int>& disj, vector<int>& rank, vector<int>& size, vector<int>& enemy) {
     if (pa != pb) {
-        enemy[pa] = merge(enemy[pa], pb, disj, rank, size);
-        enemy[pb] = merge(enemy[pb], pa, disj, rank, size);
+        enemy[pa] = merge(find(enemy[pa], disj), pb, disj, rank, size);
+        enemy[pb] = merge(find(enemy[pb], disj), pa, disj, rank, size);
         return false;
     }
     return true;
