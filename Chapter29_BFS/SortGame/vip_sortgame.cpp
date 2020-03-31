@@ -12,7 +12,7 @@ using namespace std;
 int n;
 vector<int> nums;
 unordered_map<int, int> index_map;
-int parent[MAX_COMB];
+int parent[MAX_N+1][MAX_COMB];
 
 void normalize() {
   vector<int> temp(n, 0);
@@ -32,35 +32,35 @@ void normalize() {
 
 int vector_to_int(vector<int> &numbers) {
   int result = 0;
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < numbers.size(); ++i) {
     result *= 10;
     result += numbers[i];
   }
   return result;
 }
 
-void build_graph() {
+void build_graph(int nth) {
   int counter = 0;
-  vector<int> init(n, 0);
-  for (int i = 0; i < n; ++i) {
+  vector<int> init(nth, 0);
+  for (int i = 0; i < nth; ++i) {
     init[i] = i+1;
   }
 
   deque<vector<int>> trace(1, init);
-  parent[0] = 0;
+  parent[nth][0] = 0;
+  index_map[vector_to_int(init)] = counter++;
   while (!trace.empty()) {
     vector<int> current = trace.front(); trace.pop_front();
     int current_enc = vector_to_int(current);
-    index_map[current_enc] = counter;
-    for (int i = 0; i <= n-2; ++i) {
-      for (int j = i+2; j <= n; ++j) {
+    for (int i = 0; i <= nth-2; ++i) {
+      for (int j = i+2; j <= nth; ++j) {
         vector<int> temp = current;
         reverse(temp.begin()+i, temp.begin()+j);
         int next_enc = vector_to_int(temp);
         if (index_map.find(next_enc) == index_map.end()) {
           index_map[next_enc] = counter++;
           trace.push_back(temp);
-          parent[index_map[next_enc]] = index_map[current_enc];
+          parent[nth][index_map[next_enc]] = index_map[current_enc];
         }
       }
     }
@@ -69,15 +69,13 @@ void build_graph() {
 
 void initialize() {
   normalize();
-  index_map.clear();
-  build_graph();
 }
 
 int find_shortest_path(int from) {
   int depth = 0;
-  while (parent[from] != from) {
+  while (parent[n][from] != from) {
     ++depth;
-    from = parent[from];
+    from = parent[n][from];
   }
   return depth;
 }
@@ -92,6 +90,9 @@ void solution() {
 int main() {
   cin.sync_with_stdio(false);
   int c; cin >> c;
+  for (int i = 1; i <= MAX_N; ++i) {
+    build_graph(i);
+  }
   while (c--) {
     cin >> n;
     nums.clear(); nums.resize(n, 0);
