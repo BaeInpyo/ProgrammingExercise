@@ -26,8 +26,6 @@ NODE* merge(NODE* a, NODE* b) {
     auto ra = root(a);
     auto rb = root(b);
     if (ra == rb) return ra;
-    if (ra->counter && rb->counter)
-        ra->counter = merge(ra->counter, rb->counter);
     rb->parent = ra;
     return ra;
 }
@@ -68,7 +66,9 @@ int main() {
                     cout << "CONTRADICTION AT " << i+1 << '\n';
                     continue;
                 }
-                merge(anode, bnode);
+                auto _node = merge(anode, bnode);
+                if (aroot->counter && broot->counter)
+                    _node->counter = merge(aroot->counter, broot->counter);
             }
             else if (s[0] == 'D') {
                 NODE* anode = &users[a];
@@ -82,12 +82,16 @@ int main() {
                 }
                 if (!aroot->counter)
                     aroot->counter = broot;
-                else
-                    merge(aroot->counter, broot);
+                else {
+                    auto _node = merge(aroot->counter, bnode);
+                    aroot->counter = _node;
+                }
                 if (!broot->counter)
                     broot->counter = aroot;
-                else
-                    merge(broot->counter, aroot);
+                else {
+                    auto _node = merge(broot->counter, anode);
+                    broot->counter = _node;
+                }
             }
             else return -123;
         }
