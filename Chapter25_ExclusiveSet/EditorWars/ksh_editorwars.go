@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import "fmt"
 
 type inputType struct {
 	command int
@@ -35,6 +32,9 @@ func initialize() {
 }
 
 func find(a int) int {
+	if a == -1 {
+		return -1
+	}
 	for a != belongsTo[a] {
 		a = belongsTo[a]
 	}
@@ -43,9 +43,9 @@ func find(a int) int {
 func union(a int, b int) int {
 	if a == -1 || b == -1 {
 		if a < b {
-			return a
+			return b
 		}
-		return b
+		return a
 	}
 	pa := find(a)
 	pb := find(b)
@@ -67,52 +67,32 @@ func union(a int, b int) int {
 
 }
 
-func ack(a int, b int) (int, bool) {
-	// a가 싫어하는 집단이 b집단인지 봐야함 -> 실패
-	// b가 싫어하는 집단이 a집단인지 봐야함 -> 실패
-	// a,b를 union해준다.
-	// 그리고 리턴받은 값(합쳐진 부모)의 dislike를 바꿔준다.
-	// a,b가 서로 싫어하는 집단이 같은 집단으로 합칠수있는지 또 check_union해야함
+func ack(a int, b int) bool {
 	pa := find(a)
 	pb := find(b)
 
 	if dislike[pa] == pb {
-		return -1, false
-	} // 적대관계이다. 어차피 쌍방이므로 한쪽만 보면될듯...
+		return false
+	}
 
 	pp := union(pa, pb)
-	dd, ok := ack(pa, pb)
-	if ok == false {
-		return -1, false
-	}
+
+	dd := union(dislike[pa], dislike[pb])
 	dislike[pp] = dd
 	if dd != -1 {
 		dislike[dd] = pp
 	}
-	return pp, false
+	return true
 }
 
 func dis(a int, b int) bool {
-	// a가 싫어하는 집단이 b집단인지 봐야함 -> 실패
-	// b가 싫어하는 집단이 a집단인지 봐야함 -> 실패
-	// a,b를 union해준다.
-	// 그리고 리턴받은 값(합쳐진 부모)의 dislike를 바꿔준다.
-	// a,b가 서로 싫어하는 집단이 같은 집단으로 합칠수있는지 또 check_union해야함
 	pa := find(a)
 	pb := find(b)
 	if pa == pb {
 		return false
 	}
-	// pa의 적이랑 pb랑 짝이고
-	// pb의 적이랑 pa랑 짝이다.
-	na, ok := ack(pa, dislike[pb])
-	if ok == false {
-		return false
-	}
-	nb, ok := ack(pb, dislike[pa])
-	if ok == false {
-		return false
-	}
+	na := union(pa, dislike[pb])
+	nb := union(pb, dislike[pa])
 	dislike[na] = nb
 	dislike[nb] = na
 	return true
@@ -122,7 +102,7 @@ func solution() int {
 	for idx = 1; idx <= m; idx++ {
 		var ok bool
 		if input[idx].command == ackType {
-			_, ok = ack(input[idx].a, input[idx].b)
+			ok = ack(input[idx].a, input[idx].b)
 		} else {
 			ok = dis(input[idx].a, input[idx].b)
 		}
@@ -154,19 +134,18 @@ func calcMax() int {
 		}
 	}
 
-	return -1
+	return result
 }
 func main() {
-	stdin, _ := os.OpenFile("input.txt", os.O_RDONLY, 0666)
-	os.Stdin = stdin
+	//stdin, _ := os.OpenFile("input.txt", os.O_RDONLY, 0666)
+	//os.Stdin = stdin
 	var testcase int
 	fmt.Scanf("%d", &testcase)
 	for tc := 1; tc <= testcase; tc++ {
 		fmt.Scanf("%d %d", &n, &m)
 		initialize()
 		var comment string
-		var idx int
-		for idx = 1; idx <= m; idx++ {
+		for idx := 1; idx <= m; idx++ {
 			fmt.Scanf("%s %d %d", &comment, &input[idx].a, &input[idx].b)
 			if comment == "ACK" {
 				input[idx].command = ackType
@@ -183,24 +162,3 @@ func main() {
 	}
 }
 
-/*
-내가 a <-> b를 만들고
-그리고 c-a를 만들었는데..
-b랑 c가 ACK가 왔다.
-이때 에러를 실패를 리턴해야하는데?
-union할때 dislike도 같이 옮겨줘야할듯
-
-그때 만약에 dislike가 둘다 있으면 또 같이 두개를 같이 union해줘야하고.
-
-그렇게 같이 만들어주면... 뭘해야하지?
-1번부터 돌면서 짝이없는애들은 서로 배척하는집단중에서는...큰놈을
-상관없는 애들은 그냥 싹다 모아서
-이렇게해야하는데.. 서로 배척하는 집단을 가져왔을때 패런트가 더 큰경우에만 계산
-*/
-
-/*
-MAX PARTY SIZE IS 3
-MAX PARTY SIZE IS 100
-CONTRADICTION AT 3
-MAX PARTY SIZE IS 5
-*/
