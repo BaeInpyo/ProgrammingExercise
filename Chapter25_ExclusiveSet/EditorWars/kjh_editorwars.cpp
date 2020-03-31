@@ -10,6 +10,7 @@ struct NODE {
 };
 
 NODE* root(NODE* _node) {
+    if (!_node) return 0;
     auto node = _node;
     while (node->parent) {
         node = node->parent;
@@ -61,7 +62,7 @@ int main() {
                 NODE* bnode = &users[b];
                 auto aroot = root(anode);
                 auto broot = root(bnode);
-                if (aroot == broot->counter || broot == aroot->counter) {
+                if (aroot == root(broot->counter) || broot == root(aroot->counter)) {
                     cont = true;
                     cout << "CONTRADICTION AT " << i+1 << '\n';
                     continue;
@@ -73,10 +74,10 @@ int main() {
                     _counter->counter = _node;
                 }
                 else if (aroot->counter) {
-                    _node->counter = aroot->counter;
+                    _node->counter = root(aroot->counter);
                 }
                 else if (broot->counter) {
-                    _node->counter = broot->counter;
+                    _node->counter = root(broot->counter);
                 }
             }
             else if (s[0] == 'D') {
