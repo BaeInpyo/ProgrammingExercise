@@ -2,97 +2,54 @@
 #include <vector>
 #include <unordered_map>
 #include <queue>
+#include <cstring>
 
 using namespace std;
 
 int n;
+int init, target;
+int c[1 << 24];
 
-class State {
- public:
-  vector<State> getAdjacent();
-  bool operator== (const State &rhs) const { return towers == rhs.towers; }
-  bool empty(int index) const { return (towers & windows[index]) == 0; }
-  void push(int index, int disc) { 
-    long long int value = disc;
-    towers += (value << (12 * index));
-  }
-  void pop(int index) { 
-    long long int tower_i = (towers & windows[index]);
-    towers = towers - (tower_i & (~tower_i + 1));
-  }
-  int peek(int index) const {
-    long long int tower_i = (towers & windows[index]);
-    tower_i = tower_i >> (12 * index);
-    return tower_i & (~tower_i + 1);
-  }
-
-  std::vector<long long int> decoding() const {
-    long long int tower_0 = (towers & windows[0]);
-    long long int tower_1 = (towers & windows[1]);
-    long long int tower_2 = (towers & windows[2]);
-    long long int tower_3 = (towers & windows[3]);
-
-    tower_1 = tower_1 >> 12;
-    tower_2 = tower_2 >> 24;
-    tower_3 = tower_3 >> 36;
-    return {tower_0, tower_1, tower_2, tower_3};
-  }
-
-  long long int towers = 0;
-
-  const long long int windows[4] = {
-    (long long int)0xFFF,
-    (long long int)0xFFF << 12,
-    (long long int)0xFFF << 24,
-    (long long int)0xFFF << 36
-  };
-};
-
-vector<State> State::getAdjacent() {
-  vector<State> result;
-
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      if (i == j) continue;
-      if (!empty(i) && (peek(i) < peek(j) || peek(j) == 0)) {
-        State new_state = *this;
-        new_state.push(j, new_state.peek(i));
-        new_state.pop(i);
-        result.push_back(new_state);
-      }
-    }
-  }
-
-  return result;
+void push(int towers, int index, int disc) {
+  towers += (index << (2 * (disc-1)));
 }
 
-State init, target;
-
 void initialize() {
-  target.towers = 0;
-  target.push(3, (1 << n) - 1);
+  target = (1 << (2*n)) - 1;
 }
 
 int sgn(int x) { if (!x) return 0; return x > 0 ? 1 : -1; }
 int incr(int x) { if (x < 0) return x - 1; return x + 1; }
 
-int bidirectional(State start, State end) {
-  unordered_map<long long int, int> c;
-  queue<State> q;
+int bidirectional(int start, int end) {
+  //unordered_map<int, int> c;
+  memset(c, 0, sizeof(c));
+  queue<int> q;
   if (start == end) return 0;
 
-  q.push(start); c[start.towers] = 1;
-  q.push(end); c[end.towers] = -1;
+  q.push(start); c[start] = 1;
+  q.push(end); c[end] = -1;
   while (!q.empty()) {
-    State here = q.front(); q.pop();
-    auto adjacent = here.getAdjacent();
-    for (int i = 0; i < adjacent.size(); ++i) {
-      auto iter = c.find(adjacent[i].towers);
-      if (iter == c.end()) {
-        c[adjacent[i].towers] = incr(c[here.towers]);
-        q.push(adjacent[i]);
-      } else if (sgn(iter->second) != sgn(c[here.towers])) {
-        return abs(iter->second) + abs(c[here.towers]) - 1;
+    int here = q.front(); q.pop();
+    int towers[4]{0, 0, 0, 0};
+    for (int i = n; i > 0; --i) {
+      towers[(here >> (2*(i-1))) & 3] = i;
+    }
+    for (int i = 0; i < 4; ++i) {
+      if (towers[i] != 0) {
+        for (int j = 0; j < 4; ++j) {
+          if (i != j) {
+            if (towers[i] < towers[j] || towers[j] == 0) {
+              int next = (here & ~(3 << 2*(towers[i]-1))) | (j << 2*(towers[i]-1));
+              if (c[next] == 0) {
+                c[next] = incr(c[here]);
+                q.push(next);
+              } else if (sgn(c[next]) != sgn(c[here])) {
+                return abs(c[next]) + abs(c[here]) - 1;
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -110,12 +67,12 @@ int main() {
   int c; cin >> c;
   while (c--) {
     cin >> n;
-    init.towers = 0;
+    init = 0;
     for (int i = 0; i < 4; ++i) {
       int num_d; cin >> num_d;
       for (int j = 0; j < num_d; ++j) {
         int disc; cin >> disc;
-        init.push(i, 1 << (disc-1));
+        init += (i << (2 * (disc-1)));
       }
     }
     solution();
