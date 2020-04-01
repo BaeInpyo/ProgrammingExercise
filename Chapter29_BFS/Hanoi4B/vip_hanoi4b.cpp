@@ -10,14 +10,42 @@ int n;
 class State {
  public:
   vector<State> getAdjacent();
-  bool operator< (const State &rhs) const;
-  bool operator== (const State &rhs) const;
-  bool empty(int index) const { return towers[index] == 0; }
-  void push(int index, int disc) { towers[index] += disc; }
-  void pop(int index) { towers[index] -= peek(index); }
-  int peek(int index) const { return (towers[index] & (~towers[index] + 1)); }
-  long long int encoding();
-  int towers[4];
+  bool operator== (const State &rhs) const { return towers == rhs.towers; }
+  bool empty(int index) const { return (towers & windows[index]) == 0; }
+  void push(int index, int disc) { 
+    long long int value = disc;
+    towers += (value << (12 * index));
+  }
+  void pop(int index) { 
+    long long int tower_i = (towers & windows[index]);
+    towers = towers - (tower_i & (~tower_i + 1));
+  }
+  int peek(int index) const {
+    long long int tower_i = (towers & windows[index]);
+    tower_i = tower_i >> (12 * index);
+    return tower_i & (~tower_i + 1);
+  }
+
+  std::vector<long long int> decoding() const {
+    long long int tower_0 = (towers & windows[0]);
+    long long int tower_1 = (towers & windows[1]);
+    long long int tower_2 = (towers & windows[2]);
+    long long int tower_3 = (towers & windows[3]);
+
+    tower_1 = tower_1 >> 12;
+    tower_2 = tower_2 >> 24;
+    tower_3 = tower_3 >> 36;
+    return {tower_0, tower_1, tower_2, tower_3};
+  }
+
+  long long int towers = 0;
+
+  const long long int windows[4] = {
+    (long long int)0xFFF,
+    (long long int)0xFFF << 12,
+    (long long int)0xFFF << 24,
+    (long long int)0xFFF << 36
+  };
 };
 
 vector<State> State::getAdjacent() {
@@ -38,36 +66,11 @@ vector<State> State::getAdjacent() {
   return result;
 }
 
-bool State::operator<(const State &rhs) const {
-  if (towers[3] < rhs.towers[3]) return true;
-  if (towers[3] == rhs.towers[3] && towers[2] < rhs.towers[2]) return true;
-  if (towers[3] == rhs.towers[3] && towers[2] == rhs.towers[2] && towers[1] < rhs.towers[1]) return true;
-  if (towers[3] == rhs.towers[3] && towers[2] == rhs.towers[2] && towers[1] == rhs.towers[1] &&
-      towers[0] < rhs.towers[0]) return true;
-  return false;
-}
-
-bool State::operator==(const State &rhs) const {
-  if (towers[3] == rhs.towers[3] && towers[2] == rhs.towers[2] &&
-      towers[1] == rhs.towers[1] && towers[0] == rhs.towers[0]) return true;
-  return false;
-}
-
-long long int State::encoding() {
-  long long int value = towers[3];
-  value <<= 12; value += towers[2];
-  value <<= 12; value += towers[1];
-  value <<= 12; value += towers[0];
-  return value;
-}
-
 State init, target;
 
 void initialize() {
-  for (int i = 0; i < 3; ++i) {
-    target.towers[i] = 0;
-  }
-  target.towers[3] = (1 << n) - 1;
+  target.towers = 0;
+  target.push(3, (1 << n) - 1);
 }
 
 int sgn(int x) { if (!x) return 0; return x > 0 ? 1 : -1; }
@@ -78,20 +81,18 @@ int bidirectional(State start, State end) {
   queue<State> q;
   if (start == end) return 0;
 
-  q.push(start); c[start.encoding()] = 1;
-  q.push(end); c[end.encoding()] = -1;
+  q.push(start); c[start.towers] = 1;
+  q.push(end); c[end.towers] = -1;
   while (!q.empty()) {
     State here = q.front(); q.pop();
     auto adjacent = here.getAdjacent();
-    long long int here_enc = here.encoding();
     for (int i = 0; i < adjacent.size(); ++i) {
-      long long int adj_enc = adjacent[i].encoding();
-      auto iter = c.find(adj_enc);
+      auto iter = c.find(adjacent[i].towers);
       if (iter == c.end()) {
-        c[adj_enc] = incr(c[here_enc]);
+        c[adjacent[i].towers] = incr(c[here.towers]);
         q.push(adjacent[i]);
-      } else if (sgn(iter->second) != sgn(c[here_enc])) {
-        return abs(iter->second) + abs(c[here_enc]) - 1;
+      } else if (sgn(iter->second) != sgn(c[here.towers])) {
+        return abs(iter->second) + abs(c[here.towers]) - 1;
       }
     }
   }
@@ -100,6 +101,7 @@ int bidirectional(State start, State end) {
 
 void solution() {
   initialize();
+
   cout << bidirectional(init, target) << endl;
 }
 
@@ -108,9 +110,9 @@ int main() {
   int c; cin >> c;
   while (c--) {
     cin >> n;
+    init.towers = 0;
     for (int i = 0; i < 4; ++i) {
       int num_d; cin >> num_d;
-      init.towers[i] = 0;
       for (int j = 0; j < num_d; ++j) {
         int disc; cin >> disc;
         init.push(i, 1 << (disc-1));
