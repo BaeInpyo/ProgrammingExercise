@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <queue>
 
 using namespace std;
@@ -16,7 +16,7 @@ class State {
   void push(int index, int disc) { towers[index] += disc; }
   void pop(int index) { towers[index] -= peek(index); }
   int peek(int index) const { return (towers[index] & (~towers[index] + 1)); }
-
+  long long int encoding();
   int towers[4];
 };
 
@@ -53,6 +53,14 @@ bool State::operator==(const State &rhs) const {
   return false;
 }
 
+long long int State::encoding() {
+  long long int value = towers[3];
+  value <<= 12; value += towers[2];
+  value <<= 12; value += towers[1];
+  value <<= 12; value += towers[0];
+  return value;
+}
+
 State init, target;
 
 void initialize() {
@@ -66,22 +74,24 @@ int sgn(int x) { if (!x) return 0; return x > 0 ? 1 : -1; }
 int incr(int x) { if (x < 0) return x - 1; return x + 1; }
 
 int bidirectional(State start, State end) {
-  map<State, int> c;
+  unordered_map<long long int, int> c;
   queue<State> q;
   if (start == end) return 0;
 
-  q.push(start); c[start] = 1;
-  q.push(end); c[end] = -1;
+  q.push(start); c[start.encoding()] = 1;
+  q.push(end); c[end.encoding()] = -1;
   while (!q.empty()) {
     State here = q.front(); q.pop();
     auto adjacent = here.getAdjacent();
+    long long int here_enc = here.encoding();
     for (int i = 0; i < adjacent.size(); ++i) {
-      auto iter = c.find(adjacent[i]);
+      long long int adj_enc = adjacent[i].encoding();
+      auto iter = c.find(adj_enc);
       if (iter == c.end()) {
-        c[adjacent[i]] = incr(c[here]);
+        c[adj_enc] = incr(c[here_enc]);
         q.push(adjacent[i]);
-      } else if (sgn(iter->second) != sgn(c[here])) {
-        return abs(iter->second) + abs(c[here]) - 1;
+      } else if (sgn(iter->second) != sgn(c[here_enc])) {
+        return abs(iter->second) + abs(c[here_enc]) - 1;
       }
     }
   }
