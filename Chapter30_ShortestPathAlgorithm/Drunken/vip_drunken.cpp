@@ -23,17 +23,19 @@ void initialize() {
 }
 
 void build() {
-  for (int k = 0; k < v; ++k) {
-    for (int i = 0; i < v; ++i) {
-      if (i == k || adj[i][k] == MAX_TIME) continue;
-      for (int j = 0; j < v; ++j) {
-        if (j == i || j == k || adj[k][j] == MAX_TIME) continue;
-        int temp_max_delay = max(max_delay[i][k], max_delay[k][j]);
-        temp_max_delay = max(temp_max_delay, delay[k]);
-        int adjust_delay = temp_max_delay - max_delay[i][k] - max_delay[k][j];
-        if (adj[i][j] > adj[i][k] + adj[k][j] + adjust_delay) {
-          adj[i][j] = adj[i][k] + adj[k][j] + adjust_delay;
-          max_delay[i][j] = temp_max_delay;
+  for (int c = 0; c < 2; ++c) {
+    for (int k = 0; k < v; ++k) {
+      for (int i = 0; i < v; ++i) {
+        if (i == k || adj[i][k] == MAX_TIME) continue;
+        for (int j = 0; j < v; ++j) {
+          if (j == i || j == k || adj[k][j] == MAX_TIME) continue;
+          int temp_max_delay = max(max_delay[i][k], max_delay[k][j]);
+          temp_max_delay = max(temp_max_delay, delay[k]);
+          int adjust_delay = temp_max_delay - max_delay[i][k] - max_delay[k][j];
+          if (adj[i][j] > adj[i][k] + adj[k][j] + adjust_delay) {
+            adj[i][j] = adj[i][k] + adj[k][j] + adjust_delay;
+            max_delay[i][j] = temp_max_delay;
+          }
         }
       }
     }
