@@ -1,16 +1,15 @@
-
 class Trie:
     def __init__(self):
         self.top_freq = 0
         self.top_word = None
-        self.end = False
+        # self.end = False
         self.children = {}
     
     def insert(self, word, freq):
         if (-freq, word) < (-self.top_freq, self.top_word):
             self.top_word, self.top_freq = word, freq
         if not word:
-            self.end = True
+            # self.end = True
             return
         if word[0] not in self.children:
             self.children[word[0]] = Trie()
