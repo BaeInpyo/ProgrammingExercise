@@ -26,12 +26,13 @@ struct TrieNode {
     void insert(const char* key, int id) {
         if (key[0] == '\0')
             return;
-        TrieNode* next = children[toNumber(key[0])];
-        if (!next)
-            next = new TrieNode();
+        int idx = toNumber(key[0]);
+
+        if (children[idx] == nullptr) children[idx] = new TrieNode();
+        auto next = children[idx];
         if (next->topId == -1 || frequencies[next->topId] < frequencies[id]
-                              || frequencies[next->topId] == frequencies[id]
-                              && dictionary[next->topId] > dictionary[id])
+                              || (frequencies[next->topId] == frequencies[id]
+                                  && dictionary[next->topId] > dictionary[id]))
             next->topId = id;
         next->insert(key+1, id);
     }
@@ -44,7 +45,7 @@ struct TrieNode {
         return 1 + children[toNumber(key[0])]->type(key+1, id);
     }
 
-    int toNumber(char c) { c - 'A'; }
+    int toNumber(char c) { return c - 'A'; }
 };
 
 void solution() {
@@ -61,9 +62,10 @@ void solution() {
         cin >> s >> prio;
         dictionary.push_back(s);
         frequencies.push_back(prio);
-        inserted.insert({"s", i});
+        inserted.insert({s, i});
         root->insert(s.c_str(), i);
     }
+
     while (m--) {
         cin >> s;
         auto itr = inserted.find(s);
