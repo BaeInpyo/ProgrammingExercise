@@ -6,107 +6,71 @@ from collections import deque
 abs_dir = os.path.abspath(os.path.dirname(__file__))
 sys.stdin = open(os.path.join(abs_dir, "input.txt"), "r")
 
+
 class Trie:
     class TrieNode:
-        def __init__(self, char):
+        def __init__(self, char, word):
             self.char = char
-            self.end = False
-            self.freq = 0
+            self.tab = word
             self.children = {}
 
     def __init__(self):
-        self.root = Trie.TrieNode("*")
+        self.root = self.TrieNode("*", "")
+
+    def insert(self, word):
+        """
+        - insert word to trie
+        - assume that insertion order is sorted by (freq desc, word asc)
+        """
+        curr = self.root
+        for char in word:
+            if char in curr.children:
+                curr = curr.children[char]
+            else:
+                node = self.TrieNode(char, word)
+                curr.children[char] = node
+                curr = curr.children[char]
+
+    def count_keys(self, word):
+        """
+        return number of keys to enter for making word
+        """
+        curr = self.root
+        answer = len(word)
+        for (idx, char) in enumerate(word[:-1]):
+            if char in curr.children:
+                curr = curr.children[char]
+                if curr.tab == word:
+                    return min(idx+2, len(word))    # tab completion
+            else:
+                break   # new word
+
+        return len(word)    # type whole word
 
     def print(self):
-        stack = []
-        stack.append((self.root, 0))    # (node, depth)
+        """ print trie for debug """
+        stack = [(self.root, 0)]
         while stack:
-            node, depth = stack.pop()
-            print("{}{},{},{}".format("-"*depth, node.char, node.freq, node.end))
-            # print("-"*depth + node.char + ":" + node.end)
-            for k, v in node.children.items():
-                stack.append((v, depth+1))
-
-    def insert(self, string, freq):
-        curr = self.root
-        for char in string:
-            if char in curr.children:
-                curr = curr.children[char]
-            else:
-                curr.children[char] = Trie.TrieNode(char)
-                curr = curr.children[char]
-
-        curr.end = True
-        curr.freq = freq
-
-    def search(self, string):
-        curr = self.root
-        for char in string:
-            if char in curr.children:
-                curr = curr.children[char]
-            else:
-                return False
-
-        return curr.end
-
-    def tab(self, string):
-        """ return recommended word with given string as prefix """
-        # similart with search
-        curr = self.root
-        for char in string:
-            if char in curr.children:
-                curr = curr.children[char]
-            else:
-                return None
-
-        candidates = []
-        if curr.end is True:
-            candidates.append((string, curr.freq))
-
-        queue = deque()
-        for (k, v) in curr.children.items():
-            queue.append((v, ""))
-        while queue:
-            node, acc = queue.pop()
-            if node.end is True:
-                candidates.append((string + acc + node.char, node.freq))
-            else:
-                for k, v in node.children.items():
-                    queue.append((v, acc + node.char))
-
-        # sort by freq DESC string ASC
-        candidates.sort(key=lambda x: (-x[1], x[0]))
-        return candidates[0][0]
+            curr, depth = stack.pop()
+            print("{}{}:{}".format("-"*depth, curr.char, curr.tab))
+            children = curr.children.values()
+            stack.extend([(node, depth+1) for node in children])
+        print("end print")
 
 
-def solution(words, sentence):
+def solution(dict_words, sentence, m):
+    # sort by freq DESC, word ASC
+    dict_words.sort(key=lambda x: (-x[1], x[0]))
+
+    # insert words to trie
     trie = Trie()
-
-    # build trie
-    for (word, freq) in words:
-        trie.insert(word, freq)
+    for (word, freq) in dict_words:
+        trie.insert(word)
 
     # trie.print()
-    answer = sentence.count(" ")
-    for word in sentence.split():
-        # word does not exist inside trie
-        if trie.search(word) is False:
-            answer += len(word)
-
-        else:
-            for end in range(1, len(word)):
-                curr = word[:end]
-                # print("tab word: {}, result: {}".format(curr, trie.tab(curr)))
-                if trie.tab(curr) == word:
-                    # print("add: {} -> {}".format(curr, trie.tab(curr)))
-                    answer += (end + 1) # we can type tab
-                    break
-            else:
-                # if we reach end of word, we don't need to type tab
-                answer += len(word)
-
+    answer = sum([trie.count_keys(word) for word in sentence.split()])
+    answer += m-1   # spaces
     sys.stdout.write(str(answer) + "\n")
-    # print("answer:", answer)
 
 
 if __name__ == "__main__":
@@ -120,4 +84,4 @@ if __name__ == "__main__":
             words[idx] = (word, freq)
 
         sentence = sys.stdin.readline()
-        solution(words, sentence)
+        solution(words, sentence, M)
