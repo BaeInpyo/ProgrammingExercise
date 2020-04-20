@@ -111,12 +111,3 @@ func dfs(curr int) int {
 	}
 	return unwatched
 }
-
-/*
-3
-2
-999
-3
-3
-3
-*/
