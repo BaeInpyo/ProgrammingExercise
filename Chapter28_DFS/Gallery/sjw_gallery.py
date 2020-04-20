@@ -10,32 +10,44 @@ INSTALLED = 2
 
 
 def solution(g, h, hollways):
-    def dfs(here):
-        nonlocal installed
-        visited[here] = True
-        children = [0, 0, 0]
-        for there in adj[here]:
-            if not visited[there]:
-                children[dfs(there)] += 1
+    def dfs(here, adj, visited, watched):
+        """
+        start dfs from here
+        return number of installed camera
+        - find child
+        - if child is not covered, install here
+        """
+        if here in visited: # here is already visited
+            return 0
 
-        if children[UNWATCHED]:
-            installed += 1
-            return INSTALLED
-        if children[INSTALLED]:
-            return WATCHED
-        return UNWATCHED
+        # print("visit:", here)
+        visited.add(here)   # mark as visited
 
-    visited = [False] * g
-    installed = 0
-    adj = [[] for _ in range(g)]
+        children = set.difference(adj[here], visited)
+        ret = sum([dfs(child, adj, visited, watched) for child in children])
+        # ** below line is game changeer **
+        if set.difference(children, watched):
+        # if set.difference(adj[here], watched):
+            ret += 1    # insert camera here
+            watched.add(here)
+            watched.update(adj[here])
+            # print("insert:", here)
+        return ret
+
+    adj = [set() for _ in range(g)]
+    visited, watched = set(), set()
     for start, end in hollways:
-        adj[start].append(end)
+        adj[start].add(end)
+        adj[end].add(start)
 
-    for u in range(g):
-        if (not visited[u]) and (dfs(u) == UNWATCHED):
-            installed += 1
+    ret = 0
+    for i in range(g):
+        ret += dfs(i, adj, visited, watched)
+        if i not in watched:
+            ret += 1
 
-    print(installed)
+    print(ret)
+    # print("------------------------------------------")
 
 if __name__ == "__main__":
     for _ in range(int(input())):
