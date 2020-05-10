@@ -38,7 +38,7 @@ def search(state, end):
                 na.add(tower)
                 for next_ in {0, 1, 2, 3} - na:
                     new_state = _state + (next_-tower)*4**i
-                    if moves.get(new_state, 987654321) > moves[_state] + 1:
+                    if new_state not in moves:
                         queue.append(new_state)
                         moves[new_state] = moves[_state] + 1
                 if len(na) > 3:
