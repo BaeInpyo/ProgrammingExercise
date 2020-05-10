@@ -24,12 +24,12 @@ def print_state(state): # for debugging
         i += 1
     print(towers)
 
-def search(state, end):
-    queue = deque([state])
-    moves = {state: 0}
-    na = 0
-    while queue:
-        _state = queue.popleft()
+def search(begin, end):
+    queue_begin, queue_end = deque([begin]), deque([end])
+    moves_begin, moves_end = {begin: 0}, {end: 0}
+
+    while queue_begin or queue_end:
+        _state = queue_begin.popleft()
         na = set()
         for i in range(12):
             if not _state // 4**i: break
@@ -38,12 +38,31 @@ def search(state, end):
                 na.add(tower)
                 for next_ in {0, 1, 2, 3} - na:
                     new_state = _state + (next_-tower)*4**i
-                    if new_state not in moves:
-                        queue.append(new_state)
-                        moves[new_state] = moves[_state] + 1
+                    if new_state not in moves_begin:
+                        queue_begin.append(new_state)
+                        moves_begin[new_state] = moves_begin[_state] + 1
+                        if new_state in moves_end:
+                            return moves_end[new_state] + moves_begin[new_state]
                 if len(na) > 3:
                     break
-    print(moves[end])
+
+        _state = queue_end.popleft()
+        na = set()
+        for i in range(12):
+            if not _state // 4**i: break
+            tower = (_state // 4**i) % 4
+            if tower not in na:
+                na.add(tower)
+                for next_ in {0, 1, 2, 3} - na:
+                    new_state = _state + (next_-tower)*4**i
+                    if new_state not in moves_end:
+                        queue_end.append(new_state)
+                        moves_end[new_state] = moves_end[_state] + 1
+                        if new_state in moves_begin:
+                            return moves_end[new_state] + moves_begin[new_state]
+                if len(na) > 3:
+                    break
+
 
 for _ in range(int(input())):
     n = int(input())
