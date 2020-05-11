@@ -7,8 +7,11 @@ from collections import deque
 abs_dir = os.path.dirname(os.path.abspath(__file__))
 sys.stdin = open(os.path.join(abs_dir, "input.txt"), "r")
 
+FORWARD = 0
+BACKWORD = 1
 
 # do bfs search to find dst_state from src_state
+# do bidirectional bfs
 def solution(src_state, dst_state):
     visited = dict()
     def get_next_state(src_state):
@@ -31,19 +34,19 @@ def solution(src_state, dst_state):
     # do bfs
     src_state = tuple(tuple(x) for x in src_state)  # convert to tuple
     dst_state = tuple(tuple(x) for x in dst_state)  # convert to tuple
-    queue = deque([(src_state, 0)])   # (state, distance)
+    queue = deque([(src_state, 0, FORWARD), (dst_state, 0, BACKWORD)])   # (state, distance)
     while queue:
-        curr_state, curr_distance = queue.popleft()
+        curr_state, curr_distance, curr_direction = queue.popleft()
         next_state = get_next_state(curr_state)
         for state in next_state:
-            if state == dst_state:
-                print(curr_distance + 1)
+            if state in visited and visited[state][1] == 1 - curr_direction:
+                print(curr_distance + visited[state][0] + 1)
                 return
 
             state_tuple = tuple(tuple(x) for x in state)
             if state_tuple not in visited:
-                visited[state_tuple] = True
-                queue.append([state, curr_distance+1])
+                visited[state_tuple] = (curr_distance+1, curr_direction)
+                queue.append([state, curr_distance+1, curr_direction])
 
     print("no answer")
     return
