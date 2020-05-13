@@ -1,6 +1,6 @@
 #include<stdio.h>
 #define ALL1 ((1<<24)-1)
-#define NOT_VISIT -1
+#define NOT_VISIT 0
 #define P0 0
 #define P1 1
 #define P2 2
@@ -41,15 +41,26 @@ int move(int state, int disc, int pole){
 }
 
 int N;
-
+int abs(int num){
+    if (num < 0){
+        num*=-1;
+    }
+    return num;
+}
+int sign(int x){
+    return x >= 0 ? 1 : -1;
+}
 // 옮길 때 그냥 옮기는게 아니잖아.. 옮길수 있어야 옮기는데
 // stack으로 현재 누구눅 올려져있는지를 기억해야하나?
 // 그냥 처음에 한번 계산해 두며 되는구나.. 그걸 어레이로 기억하면 되고...
 
 int solution(int initState){
-    moveCount[initState]=0;
-    qPush(initState);
     int lastState = (1<<(N*2)) -1;
+    moveCount[initState]=1;
+    moveCount[lastState]=-1;
+    qPush(initState);
+    qPush(lastState);
+    
     while(!qIsEmpty()){
         int currState = qPop();
         int top[4]= {100,100,100,100}; // 각 pole에서 제일 위에있는 원판, 100 means empty
@@ -66,14 +77,17 @@ int solution(int initState){
                 // py의 top이 더 큰 경우에만 가면 됨
                 if(top[py]>top[px]){
                     int nextState = move(currState, top[px], py);
+                    // 아직 방문 하지 않은 경우
                     if(moveCount[nextState]==NOT_VISIT){
-                        moveCount[nextState]=moveCount[currState]+1;
-                        // nextState가 lastState이면 끝
-                        if (nextState==lastState){
-                            return moveCount[lastState];
-                        }
+                        int count = moveCount[currState];
+                        moveCount[nextState]=count+count/abs(count);
                         qPush(nextState);
                     }
+                    // 가운데에서 만난 경우(부호가 반대인경우)
+                    else if(sign(moveCount[nextState]) != sign(moveCount[currState])){
+                        return abs(moveCount[nextState]) + abs(moveCount[currState])-1;
+                    }
+
                 }
             }
 
@@ -91,7 +105,7 @@ void initialize(){
     rear =-1;
 }
 int main(){
-    //freopen("input.txt","r",stdin);
+    freopen("input.txt","r",stdin);
     int testcase;
     scanf("%d", &testcase);
     for(int tc=1; tc<=testcase; tc++){
