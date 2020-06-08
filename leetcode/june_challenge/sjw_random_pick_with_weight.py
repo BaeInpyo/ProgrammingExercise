@@ -18,7 +18,7 @@ class Solution:
         random_value = random.random()
 
         # find random value's index
-        index = bisect.bisect_left(weights, random_value)
+        index = bisect.bisect_right(self.weights, random_value) - 1
 
         return index
 

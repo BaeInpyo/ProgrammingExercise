@@ -4,23 +4,9 @@ Problem URL: https://leetcode.com/explore/challenge/card/june-leetcoding-challen
 
 class Solution:
     def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:
-        people = sorted(people, key=lambda x: (x[1], x[0]))
+        people = sorted(people, key=lambda x: (-x[0], x[1]))
         result = []
-        for (h, k) in people:
-            if k == 0:
-                result.append([h, k])
-
-            else:
-                count = 0
-                for idx, (_h ,_k) in reversed(list(enumerate(result))):
-                    if _h >= h:
-                        count += 1
-
-                    if count == k:
-                        break
-
-                result.insert(idx+1, [h, k])
-
-            print(result)
+        for person in people:
+            result.insert(person[1], person)
 
         return result
