@@ -83,3 +83,6 @@ func max(a int, b int) int {
 	}
 	return b
 }
+
+// http://blog.naver.com/PostView.nhn?blogId=namhong2001&logNo=221505860694&parentCategoryNo=&categoryNo=30&viewDate=&isShowPopularPosts=true&from=search
+// 이렇게 하면 틀리는구나!
