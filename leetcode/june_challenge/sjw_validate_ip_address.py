@@ -12,10 +12,8 @@ class Solution:
         ipv6_regex = "^" + r"\:".join([ipv6_chunk]*8) + "$"
 
         if re.match(ipv4_regex, IP):
-            print(ipv4_regex, IP)
             return "IPv4"
         elif re.match(ipv6_regex, IP):
-            print(ipv6_regex, IP)
             return "IPv6"
         else:
             return "Neither"
