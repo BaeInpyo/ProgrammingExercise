@@ -6,7 +6,6 @@ class Solution:
     def isSubsequence(self, s: str, t: str) -> bool:
         sidx, tidx = 0, 0
         while sidx<len(s) and tidx<len(t):
-            print(sidx, tidx)
             if s[sidx] == t[tidx]:
                 sidx += 1
                 tidx += 1

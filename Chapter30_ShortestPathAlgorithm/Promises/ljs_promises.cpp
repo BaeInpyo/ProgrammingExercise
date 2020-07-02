@@ -12,10 +12,12 @@ void solution() {
     cin >> V >> M >> N;
     adj = vector<vector<int>>(V, vector<int>(V, INF));
     res = 0;
+
     for (int i=0; i<V; i++) adj[i][i] = 0;
+
     for (int i=0; i<M; i++) {
         cin >> a >> b >> c;
-        adj[a][b] = adj[b][a] = c;
+        adj[a][b] = adj[b][a] = min(c, adj[a][b]);
     }
     for (int k=0; k<V; k++)
         for (int i=0; i<V; i++)
