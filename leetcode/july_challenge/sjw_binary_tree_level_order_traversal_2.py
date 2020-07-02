@@ -34,6 +34,7 @@ class Solution:
             else:
                 answer.append(values)
                 values = [value]
+                curr_level = level
 
         answer.append(values)
         return answer
