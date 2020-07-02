@@ -14,36 +14,31 @@ Since there is no special traversal from left right, bottom to top,
 1. Do post order traversal and save it's level. In the given example, we can
 save as [[9,1], [15,2], [7,2], [20,1], [3,0]].
 2. Do stable sort to remain left-to-right attribute.
+--> There is no need to sort. Just insert in to result list.
 """
 
 class Solution:
     def levelOrderBottom(self, root: TreeNode) -> List[List[int]]:
+        self.MAX_LEVEL = 0
         if not root:
             return []
 
-        arr = []
+        arr = []    # list of [value, level]
         self.postOrderTraversal(root, 0, arr)
-        arr.sort(key=lambda x: x[1], reverse=True) # sort by level DESC
+        answer = [[] for _ in range(self.MAX_LEVEL+1)]
 
-        answer = []
-        values = []
-        curr_level = arr[0][1]
-        for (value, level) in arr:
-            if level == curr_level:
-                values.append(value)
-            else:
-                answer.append(values)
-                values = [value]
-                curr_level = level
+        # collect by level
+        for [value, level] in arr:
+            answer[level].append(value)
 
-        answer.append(values)
-        return answer
+        return reversed(answer)
 
     def postOrderTraversal(self, root: TreeNode, level: int, arr: List = []) -> List[List[int]]:
         """Return result of post order traversal"""
         if not root:
             return
 
+        self.MAX_LEVEL = max(self.MAX_LEVEL, level)
         if root.left:
             self.postOrderTraversal(root.left, level+1, arr)
         if root.right:
