@@ -4,8 +4,7 @@ class Solution:
             return [[], [nums[start]]]
         
         result = self.subsets_internal(nums, start+1)
-        cnt = len(result)
-        for i in range(0, cnt):
+        for i in range(cnt):
             result.append(result[i] + [nums[start]])
             
         return result
