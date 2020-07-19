@@ -1,21 +1,27 @@
 """
 Problem URL: https://leetcode.com/explore/challenge/card/july-leetcoding-challenge/546/week-3-july-15th-july-21st/3394/
 
-This problem is related to topological sort at my first glance.
-To sort topologically, I can use dfs. When we start dfs from nodes wihtout
-inbound edges, we can get reversed order of tp sort.
-
-Additionally, we must detect cycle 
+This problem is topologicall sort.
+In tpsort, we do
+    - detect cycle if exist
+    - sort topologically
+We have 2 solutions for tpsort, BFS and DFS.
+In both solutions, checking existence of cycle is easy.
+In BFS, if queue is empty before popping N elements, it means cycle.
+In DFS, if result of tpsort does not contain all N nodes, it means cycle.
 """
 
 from collections import deque
+import sys
+
+sys.setrecursionlimit(10000)
 
 class Solution:
     def findOrder(self, numCourses: int, prerequisites: List[List[int]]) -> List[int]:
-        # use queue and bfs
         graph = dict()
         indegree = [0] * numCourses
 
+        # Build graph
         for (node1, node2) in prerequisites:
             if node2 in graph:
                 graph[node2].append(node1)
@@ -24,7 +30,14 @@ class Solution:
 
             indegree[node1] += 1
 
+        # return self.BFS(numCourses, graph, indegree)
+        return self.DFS(numCourses, graph, indegree)
+        
+    def BFS(self, numCourses, graph, indegree):
+        # Start BFS from root of each trees
         queue = deque()
+
+        # BFS from root node which does not have indegree
         for node in range(numCourses):
             if indegree[node] == 0:
                 queue.append(node)
@@ -44,52 +57,41 @@ class Solution:
 
         return answer
 
-    #     # edge(u, v) means we must observe u -> v order
-    #     graph = dict()  # key: prerequisite, value: list of subjects
-    #     existIngress = [False] * numCourses
-    #     for (subject, prerequisite) in prerequisites:
-    #         # build graph
-    #         if prerequisite in graph:
-    #             graph[prerequisite].append(subject)
-    #         else:
-    #             graph[prerequisite] = [subject]
+    def DFS(self, numCourses, graph, indegree):
+        """DFS solution"""
+        tpsort = []
 
-    #         existIngress[subject] = True
+        # We need to boolean list to check cycle
+        # visited[i] means node i is visited
+        # finished[i] means node i is added to result of tpsort
+        visited = [False] * numCourses
+        finished = [False] * numCourses
+        for node in range(numCourses):
+            if indegree[node] == 0:
+                self._DFS(graph, visited, finished, node, tpsort)
 
-    #     # do dfs only for nodes without ingress
-    #     visited = [False] * numCourses
-    #     tpsort = []
-    #     for src in range(numCourses):
-    #         if existIngress[src]:
-    #             continue
-    #         is_cycle = self.dfs(graph, src, visited, tpsort)
-    #         if is_cycle:
-    #             print("cycle exists")
-    #             return []
+        # This means cycle exists
+        if len(tpsort) < numCourses:
+            return []
 
-    #     print("no cycle")
-    #     # cycle does not exist
-    #     return tpsort[::-1]
+        # reverse order of DFS is result of tpsort
+        return tpsort[::-1]
 
-    # def dfs(self, graph, src, visited, tpsort):
-    #     """Do DFS from src node and add node to tpsort
-    #     Return False if cycle exists
-    #     """
+    def _DFS(self, graph, visited, finished, src, tpsort):
+        """Body of DFS"""
+        visited[src] = True
 
-    #     if visited[src]:
-    #         return True
+        for dst in graph.get(src, []):
+            # cycle exists
+            if visited[dst] and not finished[dst]:
+                print("dst is already visited but not finished:", dst)
+                return
 
-    #     for dst in graph.get(src, []):
-    #         print("dfs:", src, "->", graph.get(src, []), "curr dst:", dst)
-    #         # cycle detected
-    #         if visited[dst]:
-    #             return False
+            if not visited[dst]:
+                self._DFS(graph, visited, finished, dst, tpsort)
 
-    #         if not visited[dst]:
-    #             self.dfs(graph, dst, visited, tpsort)
+        # Mark as visited and add to tpsort list
+        finished[src] = True
+        tpsort.append(src)
 
-    #     print("visit:", src)
-    #     visited[src] = True
-    #     tpsort.append(src)
-
-    #     return False
+        return
