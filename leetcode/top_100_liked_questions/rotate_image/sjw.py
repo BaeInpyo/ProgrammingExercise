@@ -7,4 +7,6 @@ class Solution:
         """
         Do not return anything, modify matrix in-place instead.
         """
-        
+        n = len(matrix)
+        matrix[:] = [[row[k] for row in matrix][::-1] for k in range(n)]
+        return
