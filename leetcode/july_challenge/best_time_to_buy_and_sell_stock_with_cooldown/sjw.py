@@ -16,6 +16,7 @@ class Solution:
 
         """
         All of these kinds of state is from state-transition-diagram
+        (https://github.com/BaeInpyo/ProgrammingStudy/blob/master/leetcode/july_challenge/best_time_to_buy_and_sell_stock_with_cooldown/leetcode_309_image_1.pdf)
         have[i] = last state at day i is having stock
             1. buy stock at ith day
             2. bought stock before ith day and do nothing
