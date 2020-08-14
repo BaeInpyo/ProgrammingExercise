@@ -10,8 +10,12 @@ Problem URL: https://leetcode.com/problems/binary-tree-level-order-traversal/
 #         self.right = right
 
 from collections import deque
+
 class Solution:
     def levelOrder(self, root: TreeNode) -> List[List[int]]:
+        if not root:
+            return []
+
         queue = deque([(root, 0)])  # (node, level)
         answer = dict() # key: level, value: list of values
         while queue:
