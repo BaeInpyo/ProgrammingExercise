@@ -22,5 +22,4 @@ class Solution:
             if nextUglyNumber == ugly[five]*5:
                 five += 1
 
-        print(ugly)
         return ugly[-1]
