@@ -7,8 +7,8 @@ class Solution:
         stack = []
         match = {
             ")": "(",
-            "}", "{",
-            "]", "[",
+            "}": "{",
+            "]": "[",
         }
         for char in s:
             if char in ["(", "{", "["]:
@@ -21,4 +21,4 @@ class Solution:
                     # stack is empty or parenthesis does not match
                     return False
 
-        return True
+        return not stack
