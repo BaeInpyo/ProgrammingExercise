@@ -2,50 +2,45 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <string.h>
+
 
 using namespace std;
 
 int C, N;
-map<pair<string, string>, bool> cache;
+int cache[101][101];
+string strw, strs;
 
-bool match(string w, string s) {
-    if (cache.count(make_pair(w, s)) > 0) {
-        cout << "HIT" << endl;
-        return cache.at(make_pair(w, s));
+bool match(int w, int s) {
+    int& ret = cache[w][s];
+    if (ret != -1)
+        return ret;
+    if (w < strw.size() && s < strs.size() && (strw[w] == '?' || strw[w] == strs[s]))
+        return match(w+1, s+1);
+    if (w == strw.size()) {
+        return ret = (s == strs.size());
+    } else if (strw[w] == '*') {
+        if (match(w+1, s) || (s < strs.size() && match(w, s+1)))
+            return ret = 1;
     }
-    cout << "MISS" << endl;
-    int pos = 0;
-    while (pos < w.size() && pos < s.size() && (w[pos] == '?' || w[pos] == s[pos]))
-        pos++;
-    if (pos == w.size()) {
-        bool result = (pos == s.size());
-        cache.insert(make_pair(make_pair(w, s), result));
-        return result;
-    }
-    else if (w[pos] == '*') {
-        for (int i = pos; i <= s.size(); i++) {
-            if (match(w.substr(pos+1), s.substr(i)))
-                return true;
-        }
-    }
-    cache.insert(make_pair(make_pair(w, s), false));
-    return false;
+    return ret = 0;
 }
 
 void solution() {
     auto files = vector<string>();
     auto matched_files = vector<string>();
-    cache.clear();
-    string w;
-    cin >> w >> N;
+    cin >> strw >> N;
     for (int i=0; i<N; i++) {
         string s;
         cin >> s;
         files.push_back(s);
     }
-    for (string s : files)
-        if (match(w, s))
+    for (string s : files) {
+        strs = s;
+        memset(cache, -1, sizeof(cache));
+        if (match(0, 0))
             matched_files.push_back(s);
+    }
 
     sort(matched_files.begin(), matched_files.end());
     for (string s : matched_files)
